@@ -24,7 +24,7 @@ import java.util.function.Function;
 @Slf4j
 public class AuthenticationFilter implements GatewayFilter {
 
-    @Value("jwt.secret")
+    @Value("${jwt.secret}")
     private String jwtSecret;
     @Override
     public @NonNull Mono<Void> filter(ServerWebExchange exchange, @NonNull GatewayFilterChain chain) {

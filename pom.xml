@@ -30,8 +30,10 @@
 		<module>infrastructure/config-server</module>
 		<module>infrastructure/gateway</module>
 		<module>infrastructure/eurekaserver</module>
-		<module>services/user</module>
-	</modules>
+		<module>services/userservice</module>
+		<module>services/emailservice</module>
+        <module>common/common-lib</module>
+    </modules>
 	<properties>
 		<java.version>25</java.version>
 		<spring-cloud.version>2025.1.0</spring-cloud.version>

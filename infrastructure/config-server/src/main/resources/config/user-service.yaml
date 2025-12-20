@@ -1,0 +1,81 @@
+server:
+  port: 8081
+
+spring:
+  datasource:
+    url: jdbc:mysql://localhost:3306/hirexhireUser
+    driverClassName: com.mysql.cj.jdbc.Driver
+    username: root
+    password: root
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+  kafka:
+    bootstrap-servers: localhost:9092
+    producer:
+      key-serializer: org.apache.kafka.common.serialization.StringSerializer
+      value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
+      properties:
+        spring.json.add.type.headers: false
+  security:
+    oauth2:
+      client:
+        registration:
+          google:
+            clientId: 976421783698-nl1k32kr2v193eeh1mh3sccbiaons4j0.apps.googleusercontent.com
+            clientSecret: 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
+            redirectUri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            scope:
+              - email
+              - profile
+          facebook:
+            clientId: 1947729105623530
+            clientSecret: 23859aa42ac73512823dd9852a9726d6
+            redirectUri: "{baseUrl}/login/oauth2/code/{registrationId}"
+          github:
+            clientId: f042411daeda07f8a600
+            clientSecret: 4734d1968ba603826ffec2bb3ffbab8d97c8c33b
+            scope:
+              - email
+              - profile
+          linkedin:
+            clientId: 77ffqszdq3q9sy
+            clientSecret: ZQmDWnlpc9r9Hh4h
+            scope: email, profile
+            authorizationGrantType: authorization_code
+            redirectUri: "{baseUrl}/login/oauth2/code/{registrationId}"
+            client-authentication-method: client_secret_post
+        provider:
+          linkedin: # not common OAuth2 provider
+            authorization-uri: https://www.linkedin.com/oauth/v2/authorization
+            token-uri: https://www.linkedin.com/oauth/v2/accessToken
+            user-info-uri: https://api.linkedin.com/v2/userinfo
+            jwk-set-uri: https://www.linkedin.com/oauth/openid/jwks
+  servlet:
+    multipart:
+      enabled: true
+      # Threshold after which files are written to disk.
+      file-size-threshold: 2KB
+      # Max file size.
+      max-file-size: 10MB
+      # Max Request Size
+      max-request-size: 20MB
+
+kafka:
+  topics:
+    email-events: email-events-topic
+
+jwt:
+  secret: 404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970
+  expiration: 86400000
+
+eureka:
+  client:
+    service-url:
+      defaultZone: http://localhost:8761/eureka/
+    fetch-registry: true
+    register-with-eureka: true
+    enabled: true
+  instance:
+    prefer-ip-address: true

@@ -7,7 +7,7 @@ public class AppConstants {
     public static final int ACCESS_EXPATRIATION_TIME = 24 * 60 * 60 * 1000;
     public static final int REFRESH_EXPATRIATION_TIME = 7 * ACCESS_EXPATRIATION_TIME;
 
-    @Value("jwt.secret")
+    @Value("${jwt.secret}")
     public static final String JWT_SECRET_KEY = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
     public static final String CLIENT_URL = "http://localhost:4200";
 

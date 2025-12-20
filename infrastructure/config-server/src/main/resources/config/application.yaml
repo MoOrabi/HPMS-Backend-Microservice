@@ -8,3 +8,7 @@ logging:
   level:
     root: INFO
     com.hpms: DEBUG
+
+kafka:
+  topics:
+    email-events: email-events-topic

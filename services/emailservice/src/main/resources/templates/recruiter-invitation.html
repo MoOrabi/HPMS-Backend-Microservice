@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Invitation to Join HPMS as a Recruiter</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            max-width: 600px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+        .header h1 {
+            margin: 0;
+            font-size: 28px;
+            font-weight: 600;
+        }
+        .header p {
+            margin: 10px 0 0 0;
+            font-size: 16px;
+            opacity: 0.9;
+        }
+        .content {
+            padding: 40px 30px;
+        }
+        .greeting {
+            font-size: 18px;
+            font-weight: 600;
+            color: #667eea;
+            margin-bottom: 20px;
+        }
+        .invitation-box {
+            background-color: #f8f9ff;
+            border-left: 4px solid #667eea;
+            padding: 20px;
+            margin: 25px 0;
+            border-radius: 4px;
+        }
+        .invitation-box h2 {
+            margin: 0 0 10px 0;
+            font-size: 20px;
+            color: #667eea;
+        }
+        .invitation-box p {
+            margin: 5px 0;
+            color: #555;
+        }
+        .button-container {
+            text-align: center;
+            margin: 35px 0;
+        }
+        .button {
+            display: inline-block;
+            padding: 16px 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 16px;
+            font-weight: 600;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+            transition: transform 0.2s;
+        }
+        .button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+        }
+        .features {
+            margin: 30px 0;
+        }
+        .feature-item {
+            display: flex;
+            align-items: start;
+            margin: 15px 0;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 6px;
+        }
+        .feature-icon {
+            font-size: 24px;
+            margin-right: 15px;
+            color: #667eea;
+        }
+        .feature-text h3 {
+            margin: 0 0 5px 0;
+            font-size: 16px;
+            color: #333;
+        }
+        .feature-text p {
+            margin: 0;
+            font-size: 14px;
+            color: #666;
+        }
+        .info-box {
+            background-color: #fff3cd;
+            border: 1px solid #ffc107;
+            padding: 15px;
+            border-radius: 6px;
+            margin: 25px 0;
+        }
+        .info-box strong {
+            color: #856404;
+        }
+        .expiry-notice {
+            text-align: center;
+            padding: 20px;
+            background-color: #fff3cd;
+            border-radius: 6px;
+            margin: 25px 0;
+        }
+        .expiry-notice .icon {
+            font-size: 32px;
+            margin-bottom: 10px;
+        }
+        .expiry-notice p {
+            margin: 5px 0;
+            color: #856404;
+            font-weight: 500;
+        }
+        .link-text {
+            word-break: break-all;
+            color: #667eea;
+            font-size: 13px;
+            padding: 10px;
+            background-color: #f8f9ff;
+            border-radius: 4px;
+            margin: 15px 0;
+        }
+        .footer {
+            background-color: #f8f9fa;
+            padding: 30px;
+            text-align: center;
+            color: #666;
+            font-size: 13px;
+            border-top: 1px solid #e9ecef;
+        }
+        .footer p {
+            margin: 5px 0;
+        }
+        .social-links {
+            margin: 15px 0;
+        }
+        .social-links a {
+            display: inline-block;
+            margin: 0 8px;
+            color: #667eea;
+            text-decoration: none;
+            font-weight: 500;
+        }
+        .divider {
+            height: 1px;
+            background-color: #e9ecef;
+            margin: 30px 0;
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <!-- Header -->
+    <div class="header">
+        <h1>🎉 You're Invited!</h1>
+        <p>Join HPMS as a Professional Recruiter</p>
+    </div>
+
+    <!-- Content -->
+    <div class="content">
+        <p class="greeting">Hello <strong th:text="${recruiterName}">Recruiter</strong>,</p>
+
+        <p>We're excited to invite you to join the <strong>Hiring Process Management System (HPMS)</strong> as a recruiter!</p>
+
+        <div class="invitation-box">
+            <h2>📧 Invitation Details</h2>
+            <p><strong>Invited by:</strong> <span th:text="${companyName}">Company Name</span></p>
+            <p><strong>Role:</strong> Recruiter</p>
+            <p><strong>Organization:</strong> <span th:text="${organizationName}">Organization</span></p>
+        </div>
+
+        <p>As a recruiter on HPMS, you'll have access to powerful tools to streamline your hiring process:</p>
+
+        <div class="features">
+            <div class="feature-item">
+                <div class="feature-icon">📋</div>
+                <div class="feature-text">
+                    <h3>Post Job Openings</h3>
+                    <p>Create and manage job listings with ease</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">👥</div>
+                <div class="feature-text">
+                    <h3>Manage Candidates</h3>
+                    <p>Track applications and candidate progress in real-time</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">📊</div>
+                <div class="feature-text">
+                    <h3>Analytics & Reports</h3>
+                    <p>Gain insights into your recruitment pipeline</p>
+                </div>
+            </div>
+
+            <div class="feature-item">
+                <div class="feature-icon">🤝</div>
+                <div class="feature-text">
+                    <h3>Collaborate Seamlessly</h3>
+                    <p>Work with your team to find the best talent</p>
+                </div>
+            </div>
+        </div>
+
+        <p style="margin-top: 30px;">Click the button below to accept your invitation and set up your account:</p>
+
+        <!-- CTA Button -->
+        <div class="button-container">
+            <a th:href="${invitationLink}" class="button">Accept Invitation & Join</a>
+        </div>
+
+        <!-- Alternative Link -->
+        <p style="text-align: center; color: #666; font-size: 14px;">Or copy and paste this link into your browser:</p>
+        <div class="link-text" th:text="${invitationLink}">https://hpms.com/accept-invitation?token=xyz</div>
+
+        <!-- Expiry Notice -->
+        <div class="expiry-notice">
+            <div class="icon">⏰</div>
+            <p><strong>This invitation expires in <span th:text="${expiryTime}">7 days</span></strong></p>
+            <p>Please accept it before it expires to gain access.</p>
+        </div>
+
+        <div class="divider"></div>
+
+        <!-- Additional Info -->
+        <div class="info-box">
+            <p><strong>⚠️ Important:</strong> If you didn't expect this invitation or don't recognize the sender, please disregard this email and contact us at <a href="mailto:support@hpms.com">support@hpms.com</a></p>
+        </div>
+
+        <p style="margin-top: 30px;">We're thrilled to have you join our platform and look forward to supporting your recruitment success!</p>
+
+        <p style="margin-top: 20px;">
+            Best regards,<br>
+            <strong>The HPMS Team</strong>
+        </p>
+    </div>
+
+    <!-- Footer -->
+    <div class="footer">
+        <p><strong>Hiring Process Management System</strong></p>
+        <p>Streamlining recruitment, one hire at a time</p>
+
+        <div class="social-links">
+            <a href="https://hpms.com">Website</a> •
+            <a href="mailto:support@hpms.com">Support</a> •
+            <a href="https://hpms.com/help">Help Center</a>
+        </div>
+
+        <div style="margin-top: 20px; padding-top: 20px; border-top: 1px solid #dee2e6;">
+            <p>&copy; 2025 HPMS. All rights reserved.</p>
+            <p>This is an automated message, please do not reply to this email.</p>
+        </div>
+    </div>
+</div>
+</body>
+</html>

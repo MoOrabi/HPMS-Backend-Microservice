@@ -1,0 +1,12 @@
+package com.hpms.commonlib.constants;
+
+public enum EmailType {
+    WELCOME,
+    EMAIL_VERIFICATION,
+    PASSWORD_RESET,
+    PASSWORD_CHANGED,
+    INTERVIEW_INVITATION,
+    RECRUITER_INVITATION,
+    APPLICATION_STATUS_UPDATE,
+    JOB_ALERT
+}
