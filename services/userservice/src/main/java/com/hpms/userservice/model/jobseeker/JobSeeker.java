@@ -119,12 +119,11 @@ public class JobSeeker extends User {
 //            CascadeType.DETACH,CascadeType.MERGE,
 //            CascadeType.PERSIST,CascadeType.REFRESH
 //    })
-//    @JoinTable(name = "jobseeker_saved_jobs",
-//            joinColumns = @JoinColumn(name = "job_seeker_id"),
-//            inverseJoinColumns = @JoinColumn(name = "job_post_id"))
-//    @JsonIgnore
-//    private Set<JobPost> savedJobs;
-//
+    @JoinTable(name = "jobseeker_saved_jobs",
+            joinColumns = @JoinColumn(name = "job_seeker_id"),
+            inverseJoinColumns = @JoinColumn(name = "job_post_id"))
+    private Set<Long> savedJobsIds;
+
 //    @OneToMany(mappedBy = "jobSeeker" , cascade = {
 //            CascadeType.DETACH,CascadeType.MERGE,
 //            CascadeType.PERSIST,CascadeType.REFRESH

@@ -22,11 +22,6 @@ public class AccountSettingController {
         return settingService.undeleteAccount(token);
     }
 
-//    @PostMapping("/delete-account-data")
-//    public ApiResponse<?> deleteAccountData(@RequestHeader(name="Authorization") String token){
-//        return settingService.deleteAccountData(token);
-//    }
-
     @PostMapping(value = "/receive-notifications-status")
     public ApiResponse<?> setNotificationsAlertsStatus(@RequestHeader(name = "Authorization") String token,
                                                        @RequestParam(name = "value") boolean value) {

@@ -32,6 +32,7 @@
 		<module>infrastructure/eurekaserver</module>
 		<module>services/userservice</module>
 		<module>services/emailservice</module>
+		<module>services/jobservice</module>
         <module>common/common-lib</module>
     </modules>
 	<properties>

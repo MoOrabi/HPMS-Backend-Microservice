@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -119,18 +120,18 @@ public class AccountSettingServiceImp implements AccountSettingService {
         }
     }
 
-    /*
-        @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
-        public void commitUsersDeletion() {
-            List<User> usersToDelete = deletionRequestRepository.getDeletedUserFor30Days(LocalDate.now());
-            System.out.println(LocalDate.now());
-            for (User user :
-                    usersToDelete) {
-                System.out.println(user.getId());
-                deleteAccountData(user.getId());
-            }
+
+//        @Scheduled(fixedRate = 1000 * 60 * 60 * 24)
+    public void commitUsersDeletion() {
+        List<User> usersToDelete = deletionRequestRepository.getDeletedUserFor30Days(LocalDate.now());
+        System.out.println(LocalDate.now());
+        for (User user :
+                usersToDelete) {
+            System.out.println(user.getId());
+            deleteAccountData(user.getId());
         }
-    */
+    }
+
     public ApiResponse<?> setNotificationsAlertsStatus(String token, boolean value) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
         User user = null;

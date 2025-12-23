@@ -23,8 +23,8 @@ import static com.hpms.userservice.utils.AppConstants.REFRESH_EXPATRIATION_TIME;
 @Service
 public class JwtTokenUtils {
 
-    public boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
+    public boolean isTokenValid(String token) {
+        return !extractExpiration(token).before(new Date());
     }
 
     private Date extractExpiration(String token) {
@@ -104,7 +104,7 @@ public class JwtTokenUtils {
 
     public Boolean validateToken(String token, UserDetails userDetails) {
         final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && ! isTokenExpired(token));
+        return (username.equals(userDetails.getUsername()) && isTokenValid(token));
     }
 
 

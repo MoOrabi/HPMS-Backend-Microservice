@@ -85,7 +85,7 @@ public class PublicAuthServiceImp implements PublicAuthService {
                     .build();
         }
         refreshToken = authHeader.substring(7);
-        if (!jwtTokenUtils.isTokenExpired(refreshToken)) {
+        if (jwtTokenUtils.isTokenValid(refreshToken)) {
             log.info("Value not valid");
             userEmail = jwtTokenUtils.extractUsername(refreshToken);
             if (userEmail != null) {
@@ -134,6 +134,7 @@ public class PublicAuthServiceImp implements PublicAuthService {
             User savedJobSeeker = userRepository.save(user);
             String accessToken = jwtTokenUtils.generateAccessToken(savedJobSeeker);
             String refreshToken = jwtTokenUtils.generateRefreshToken(savedJobSeeker);
+            emailService.sendWelcomeEmail(user);
             return ApiResponse.builder()
                     .ok(true)
                     .status(HttpStatus.ACCEPTED.value())

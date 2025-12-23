@@ -1,7 +1,10 @@
 package com.hpms.userservice.dto.company;
 
+import com.hpms.userservice.dto.JobPostDto;
 import lombok.*;
 import org.springframework.data.domain.Page;
+
+import java.util.List;
 
 
 @Getter
@@ -15,7 +18,7 @@ public class AllCompanyInfoDto {
 
     private CompanyAboutInfoResponse AboutInfoDto;
 
-//    private Page<JobPostDto> jobPosts;
+    private List<JobPostDto> jobPosts;
 
     private boolean isComplete;
 

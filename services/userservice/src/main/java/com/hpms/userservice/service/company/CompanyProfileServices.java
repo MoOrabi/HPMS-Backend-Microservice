@@ -1,25 +1,22 @@
 package com.hpms.userservice.service.company;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.jobservice.service.client.JobServiceClient;
+import com.hpms.userservice.dto.JobPostDto;
 import com.hpms.userservice.dto.company.*;
 import com.hpms.userservice.mapper.company.AboutInfoMapper;
 import com.hpms.userservice.mapper.company.BasicsInfoMapper;
 import com.hpms.userservice.mapper.company.CompanyMapper;
 import com.hpms.userservice.model.*;
 import com.hpms.userservice.repository.AboutCompanyRepository;
-import com.hpms.userservice.repository.company.AddRecruiterRequestRepository;
 import com.hpms.userservice.repository.CompanyRepository;
-import com.hpms.userservice.repository.RecruiterRepository;
-import com.hpms.userservice.repository.shared.BenefitsRepository;
 import com.hpms.userservice.repository.shared.LocationRepository;
 import com.hpms.userservice.repository.shared.SocialIconsInfoRepository;
 import com.hpms.userservice.repository.shared.UserSocialLinkRepository;
 import com.hpms.userservice.utils.FrequentlyUsed;
 import com.hpms.userservice.utils.JwtTokenUtils;
 import lombok.AllArgsConstructor;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Pageable;
-import org.springframework.data.domain.Sort;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -51,27 +48,16 @@ public class CompanyProfileServices {
 
     private final FrequentlyUsed frequentlyUsed;
 
-    private final BenefitsRepository benefitsRepository;
-
-    private final AddRecruiterRequestRepository addRecruiterRequestRepository ;
-
-//    private final JobPostRepository jobPostRepository;
-
-    private final RecruiterRepository recruiterRepository;
-
-//    private final JobPostMapper jobPostMapper;
+    private final JobServiceClient jobServiceClient;
 
     public ApiResponse<?> getAllCompanyInfo(UUID companyId) {
         Company company = companyRepository.getReferenceById(companyId);
 
         if (company != null) {
             AllCompanyInfoDto allCompanyInfoDto = companyMapper.toDto(company);
-            Pageable pageable = PageRequest.of(0, 2, Sort.by(
-                    Sort.Order.asc("publishedOn")
-            ));
-//            Page<JobPost> jobPostPage = jobPostRepository.getByCompanyId(companyId,pageable);
-//            Page<JobPostDto> jobPostDtoPage = jobPostPage.map(jobPostMapper::toPublicDto);
-//            allCompanyInfoDto.setJobPosts(jobPostDtoPage);
+
+            List<JobPostDto> jobPostDtoPage = jobServiceClient.getCompnayRecentJobPosts(companyId);
+            allCompanyInfoDto.setJobPosts(jobPostDtoPage);
             return ApiResponse.builder()
                     .ok(true)
                     .message(HttpStatus.OK.getReasonPhrase())
@@ -313,30 +299,32 @@ public class CompanyProfileServices {
                 .build();
     }
 
-//    public ApiResponse<?> getCompanyStatistics(String companyToken) {
-//        String companyId = tokenUtils.extractId(companyToken.substring(7));
-//        Optional<Company> optionalCompany = companyRepository.findById(UUID.fromString(companyId));
-//        if (optionalCompany.isEmpty()) {
-//            return ApiResponse.builder()
-//                    .ok(false)
-//                    .status(HttpStatus.BAD_REQUEST.value())
-//                    .message("NOT A VALID ID")
-//                    .build();
-//        }
-//
-//        List<Integer> companyStatisticsNumbers = companyRepository.getCompanyStatisticsById(UUID.fromString(companyId)).get(0);
-//
-//        return ApiResponse.builder()
-//                .ok(true)
-//                .status(HttpStatus.OK.value())
-//                .body(CompanyStatistics.builder()
-//                        .companyMembersNumber( companyStatisticsNumbers.get(0))
-//                        .companyActiveJobsNumber( companyStatisticsNumbers.get(1))
-//                        .pendingInvitations( companyStatisticsNumbers.get(2))
-//                        .build()
-//                )
-//                .build() ;
-//    }
+    public ApiResponse<?> getCompanyStatistics(String companyToken) {
+        String companyId = tokenUtils.extractId(companyToken.substring(7));
+        Optional<Company> optionalCompany = companyRepository.findById(UUID.fromString(companyId));
+        if (optionalCompany.isEmpty()) {
+            return ApiResponse.builder()
+                    .ok(false)
+                    .status(HttpStatus.BAD_REQUEST.value())
+                    .message("NOT A VALID ID")
+                    .build();
+        }
+
+        List<Integer> companyStatisticsNumbers = companyRepository.getCompanyStatisticsById(UUID.fromString(companyId)).get(0);
+
+        int activeJobsCount = jobServiceClient.countCompanyActiveJobs(UUID.fromString(companyId));
+
+        return ApiResponse.builder()
+                .ok(true)
+                .status(HttpStatus.OK.value())
+                .body(CompanyStatistics.builder()
+                        .companyActiveJobsNumber(activeJobsCount)
+                        .companyMembersNumber( companyStatisticsNumbers.get(0))
+                        .pendingInvitations( companyStatisticsNumbers.get(1))
+                        .build()
+                )
+                .build() ;
+    }
 
 
     public ApiResponse<?> getNameOfCompany(String companyToken) {

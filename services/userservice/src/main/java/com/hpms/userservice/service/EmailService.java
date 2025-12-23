@@ -23,7 +23,7 @@ public class EmailService {
         this.emailProducerService = emailProducerService;
     }
 
-    private void sendWelcomeEmail(User user) {
+    public void sendWelcomeEmail(User user) {
         Map<String, Object> templateData = new HashMap<>();
         templateData.put("name", user.getName());
         templateData.put("email", user.getUsername());

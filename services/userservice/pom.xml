@@ -11,7 +11,7 @@
 	<groupId>com.hpms</groupId>
 	<artifactId>userservice</artifactId>
 	<name>user</name>
-	<description>Discovery Service for Hiring Process Management System</description>
+	<description>User Service for Hiring Process Management System</description>
 	<url/>
 	<licenses>
 		<license/>

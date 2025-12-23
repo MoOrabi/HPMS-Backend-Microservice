@@ -86,7 +86,7 @@ public class CompanyAuthServiceImp implements CompanyAuthService {
                 .build();
 
         Industry industry = industryRepository.getReferenceById(companyRegisterDto.getIndustry());
-        Company company = new Company(user, companyRegisterDto.getName(), industry.getIndustry(), new HashSet<>());
+        Company company = new Company(user, companyRegisterDto.getName(), industry.getName(), new HashSet<>());
         company.setManagerFirstName(companyRegisterDto.getFirstName());
         company.setManagerLastName(companyRegisterDto.getLastName());
         company.setMobileNumberCountryCode(companyRegisterDto.getMobileNumberCountryCode());

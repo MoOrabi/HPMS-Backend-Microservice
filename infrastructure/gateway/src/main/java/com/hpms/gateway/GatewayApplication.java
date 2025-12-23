@@ -20,6 +20,8 @@ public class GatewayApplication {
 		return builder.routes()
 				.route("users_path", r -> r.path("/api/users/**")
 						.uri("lb://USER-SERVICE"))
+				.route("jobs_path", r -> r.path("/api/jobs/**")
+						.uri("lb://JOB-SERVICE"))
 //				.route("host_route", r -> r.host("*.myhost.org")
 //						.uri("https://httpbin.org"))
 //				.route("rewrite_route", r -> r.host("*.rewrite.org")

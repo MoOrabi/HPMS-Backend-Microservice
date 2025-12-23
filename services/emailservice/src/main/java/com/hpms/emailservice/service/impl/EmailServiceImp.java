@@ -36,39 +36,7 @@ public class EmailServiceImp implements EmailService {
         this.templateEngine = templateEngine;
     }
 
-
-//    @Override
-//    public void sendActivateEmail(String sendTo, String ActivateLink) throws MessagingException {
-//        ActivateEmailBuilder activateEmailBuilder = new ActivateEmailBuilder(mailSender.createMimeMessage());
-//        mailSender.send(activateEmailBuilder.createEmail(sendTo, ActivateLink));
-//    }
-//
-//    @Override
-//    public void sendCompanyWelcomeEmail(String sendTo) throws MessagingException {
-//        CompanyWelcomeEmailBuilder companyWelcomeEmailBuilder = new CompanyWelcomeEmailBuilder(mailSender.createMimeMessage());
-//        Optional<String> companyNameOptional = companyRepository.getByEmail(sendTo);
-//        if (companyNameOptional.isPresent()) {
-//            String companyName = companyNameOptional.get().toString();
-//            mailSender.send(companyWelcomeEmailBuilder.createEmail(sendTo, companyName));
-//        }
-//
-//    }
-//
-//    @Override
-//    public void sendJobSeekerWelcomeEmail(String sendTo) throws MessagingException {
-//        JobSeekerWelcomeEmailBuilder jobSeekerWelcomeEmailBuilder = new JobSeekerWelcomeEmailBuilder(mailSender.createMimeMessage());
-//        Optional<String> jobSeekerNameOptional = jobSeekerProfileRepository.getFirstNameByEmail(sendTo);
-//        String jobSeekerName = jobSeekerNameOptional.get().toString();
-//        mailSender.send(jobSeekerWelcomeEmailBuilder.createEmail(sendTo, jobSeekerName));
-//    }
-//
-//    @Override
-//    public void sendResetPasswordEmail(String sendTo, String resetLink) throws MessagingException {
-//        ResetPasswordEmailBuilder resetPasswordEmailBuilder = new ResetPasswordEmailBuilder(mailSender.createMimeMessage());
-//        mailSender.send(resetPasswordEmailBuilder.createEmail(sendTo, resetLink));
-//    }
-
-    public void sendEmail(EmailEvent emailEvent) throws UnsupportedEncodingException {
+    public void sendEmail(EmailEvent emailEvent) {
         try {
             switch (emailEvent.getEmailType()) {
                 case WELCOME -> sendWelcomeEmail(emailEvent);
@@ -91,61 +59,69 @@ public class EmailServiceImp implements EmailService {
         }
     }
 
-    private void sendWelcomeEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
-        String subject = "Welcome to HPMS!";
+    @Override
+    public void sendWelcomeEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+        String subject = "Welcome to HirexHire!";
         String template = "welcome";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendVerificationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendVerificationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Verify Your Email Address";
         String template = "verification";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendPasswordResetEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendPasswordResetEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Reset Your Password";
         String template = "password-reset";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendPasswordChangedEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendPasswordChangedEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Your Password Has Been Changed";
         String template = "password-changed";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendInterviewInvitationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendInterviewInvitationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Interview Invitation";
         String template = "interview-invitation";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendRecruiterInvitationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendRecruiterInvitationEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "You're Invited to Join HPMS as a Recruiter";
         String template = "recruiter-invitation";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendApplicationStatusEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendApplicationStatusEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Application Status Update";
         String template = "application-status";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendJobAlertEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendJobAlertEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "New Job Opportunities";
         String template = "job-alert";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    private void sendGenericEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
+    @Override
+    public void sendGenericEmail(EmailEvent event) throws MessagingException, UnsupportedEncodingException {
         String subject = "Notification from HPMS";
         String template = "generic";
         sendHtmlEmail(event.getRecipientEmail(), subject, template, event.getTemplateData());
     }
 
-    // ✅ Core method: Send HTML email with Thymeleaf template
     private void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> templateData)
             throws MessagingException, UnsupportedEncodingException {
 
@@ -172,7 +148,6 @@ public class EmailServiceImp implements EmailService {
         log.info("HTML email sent to: {} with template: {}", to, templateName);
     }
 
-    // ✅ Alternative: Send plain text email (simpler, no HTML)
     private void sendPlainTextEmail(String to, String subject, String body) {
         SimpleMailMessage message = new SimpleMailMessage();
         message.setFrom(fromEmail);

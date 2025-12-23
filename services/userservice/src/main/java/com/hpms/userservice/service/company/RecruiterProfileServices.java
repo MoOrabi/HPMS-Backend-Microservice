@@ -1,14 +1,13 @@
 package com.hpms.userservice.service.company;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.jobservice.service.client.JobServiceClient;
 import com.hpms.userservice.dto.company.*;
 import com.hpms.userservice.mapper.RecruiterInfoMapper;
 import com.hpms.userservice.model.Recruiter;
-import com.hpms.userservice.repository.company.AddRecruiterRequestRepository;
 import com.hpms.userservice.repository.CompanyRepository;
 import com.hpms.userservice.repository.RecruiterRepository;
 import com.hpms.userservice.utils.FrequentlyUsed;
-import com.hpms.userservice.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,13 +22,9 @@ public class RecruiterProfileServices {
     @Autowired
     private RecruiterRepository recruiterRepository;
     @Autowired
-    private AddRecruiterRequestRepository addRecruiterRequestRepository;
-    @Autowired
     private CompanyRepository companyRepository;
-//    @Autowired
-//    private JobPostRepository jobPostRepository;
     @Autowired
-    private JwtTokenUtils tokenUtils;
+    private JobServiceClient jobServiceClient;
     @Autowired
     private FrequentlyUsed frequentlyUsed;
     @Autowired
@@ -43,7 +38,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> getProfilePhoto(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -62,7 +57,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> getMyInfo(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -101,7 +96,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?>updateRecruiterInfo(String token, RecruiterUpdateRequest updateRequest) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -128,7 +123,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> getRecruiterCompanyBasicInfo (String token ) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -154,7 +149,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> getRecruiterSubscriptionChoices(String companyToken) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(companyToken);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -174,7 +169,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> setRecruiterSubscriptionChoices(String token, CompanySubscriptionChoices subscriptionChoices) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -196,7 +191,7 @@ public class RecruiterProfileServices {
 
     public ApiResponse<?> removeRecruiterProfilePhoto(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -218,7 +213,7 @@ public class RecruiterProfileServices {
     public ApiResponse<?> getRecruiterStatistics(String token) {
 
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        Recruiter recruiter = null;
+        Recruiter recruiter;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -228,14 +223,14 @@ public class RecruiterProfileServices {
 
         int companyNumberOfMembers = companyRepository.getNumberOfRecruitersForCompany(recruiter.getCompany().getId());
 
-//        int activePostsNumber = jobPostRepository.countActiveJobsForRecruiter(recruiter.getId());
+        int activePostsNumber = jobServiceClient.countRecruiterActiveJobs(recruiter.getId());
 
         return ApiResponse.builder()
                 .ok(true)
                 .status(HttpStatus.OK.value())
                 .body(RecruiterStatistics.builder()
                         .companyNumberOfMembers(companyNumberOfMembers)
-//                        .activePostsNumber(activePostsNumber)
+                        .activePostsNumber(activePostsNumber)
                         .build())
                 .build() ;
     }

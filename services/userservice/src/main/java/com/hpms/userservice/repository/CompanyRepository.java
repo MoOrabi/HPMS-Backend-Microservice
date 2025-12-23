@@ -7,6 +7,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -23,22 +24,18 @@ public interface CompanyRepository extends JpaRepository<Company, UUID> , JpaSpe
 
     Company getCompanyByUsername(String companyUsername);
 
-//    @Query(value = "SELECT \n" +
-//            "    (SELECT COUNT(r.id)\n" +
-//            "     FROM recruiter r\n" +
-//            "     JOIN company c ON r.company_id = c.id\n" +
-//            "     WHERE c.id = :companyId)  ,\n" +
-//            "    \n" +
-//            "    (SELECT COUNT(jp.id)\n" +
-//            "     FROM job_post jp\n" +
-//            "     JOIN company c ON jp.company_id = c.id\n" +
-//            "     WHERE c.id = :companyId and jp.open = 1 )  , \n" +
-//            "     (SELECT COUNT(req.id)\n" +
-//            "     FROM add_recruiter_request req \n" +
-//            "     JOIN company c ON req.company_id = c.id\n" +
-//            "     WHERE c.id = :companyId and valid = 1 and expiration_date > now())   ;"
-//            , nativeQuery = true)
-//    List<List<Integer>> getCompanyStatisticsById(UUID companyId) ;
+    @Query(value = "SELECT \n" +
+            "    (SELECT COUNT(r.id)\n" +
+            "     FROM recruiter r\n" +
+            "     JOIN company c ON r.company_id = c.id\n" +
+            "     WHERE c.id = :companyId)  ,\n" +
+            "    \n" +
+            "     (SELECT COUNT(req.id)\n" +
+            "     FROM add_recruiter_request req \n" +
+            "     JOIN company c ON req.company_id = c.id\n" +
+            "     WHERE c.id = :companyId and valid = 1 and expiration_date > now())   ;"
+            , nativeQuery = true)
+    List<List<Integer>> getCompanyStatisticsById(UUID companyId);
 
     @Query(nativeQuery = true, value = "SELECT COUNT(r.id) FROM recruiter r JOIN company c ON r.company_id = c.id " +
             "WHERE c.id = :companyId")

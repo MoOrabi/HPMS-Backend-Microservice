@@ -19,6 +19,7 @@ public class Industry {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    private String industry;
+    @Column(unique = true)
+    private String name;
 
 }

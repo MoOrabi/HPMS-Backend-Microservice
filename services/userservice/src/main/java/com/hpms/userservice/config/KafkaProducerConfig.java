@@ -31,11 +31,10 @@ public class KafkaProducerConfig {
         Map<String, Object> configProps = new HashMap<>();
         configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
 
-        // ✅ New way: Pass serializers to factory constructor
         return new DefaultKafkaProducerFactory<>(
                 configProps,
                 new StringSerializer(),
-                new JsonSerializer<>()  // No deprecated warnings
+                new JsonSerializer<>()
         );
     }
 

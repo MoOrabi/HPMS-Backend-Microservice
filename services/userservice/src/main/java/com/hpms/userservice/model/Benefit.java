@@ -1,9 +1,6 @@
 package com.hpms.userservice.model;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -14,9 +11,10 @@ import lombok.Setter;
 public class Benefit {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private long id;
 
-    @Column(name = "benefit")
+    @Column(unique = true)
     private String benefit;
 
     private String icon;

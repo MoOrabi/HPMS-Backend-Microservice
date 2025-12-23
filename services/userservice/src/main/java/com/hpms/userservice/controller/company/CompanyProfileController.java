@@ -87,10 +87,10 @@ public class CompanyProfileController {
         return companyProfileServices.updateBenefits(companyToken, benefits);
     }
 
-//    @GetMapping("/statistics")
-//    public ApiResponse<?> getCompanyStatistics(@RequestHeader("Authorization") String companyToken){
-//        return companyProfileServices.getCompanyStatistics(companyToken);
-//    }
+    @GetMapping("/statistics")
+    public ApiResponse<?> getCompanyStatistics(@RequestHeader("Authorization") String companyToken){
+        return companyProfileServices.getCompanyStatistics(companyToken);
+    }
 
     @GetMapping("/name")
     public ApiResponse<?> getNameOfUser(@RequestHeader("Authorization") String companyToken){

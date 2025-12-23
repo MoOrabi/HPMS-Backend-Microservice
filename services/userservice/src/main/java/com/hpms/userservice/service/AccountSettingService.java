@@ -16,7 +16,7 @@ public interface AccountSettingService {
     public ApiResponse<?> deleteAccountData(UUID id);
 
 
-    //    public void commitUsersDeletion();
+    public void commitUsersDeletion();
     public ApiResponse<?> setNotificationsAlertsStatus(String token, boolean value);
 
     public ApiResponse<?> getNotificationsAlertsStatus(String token);
