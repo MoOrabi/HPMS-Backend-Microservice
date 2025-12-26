@@ -17,6 +17,7 @@ import org.springframework.data.annotation.CreatedDate;
 import java.time.LocalDate;
 import java.util.Date;
 import java.util.Set;
+import java.util.UUID;
 
 
 @Entity
@@ -114,15 +115,6 @@ public class JobSeeker extends User {
     private String CV;
 
     private int complete ;
-
-//    @ManyToMany(fetch = FetchType.LAZY, cascade = {
-//            CascadeType.DETACH,CascadeType.MERGE,
-//            CascadeType.PERSIST,CascadeType.REFRESH
-//    })
-    @JoinTable(name = "jobseeker_saved_jobs",
-            joinColumns = @JoinColumn(name = "job_seeker_id"),
-            inverseJoinColumns = @JoinColumn(name = "job_post_id"))
-    private Set<Long> savedJobsIds;
 
 //    @OneToMany(mappedBy = "jobSeeker" , cascade = {
 //            CascadeType.DETACH,CascadeType.MERGE,

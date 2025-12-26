@@ -1,5 +1,4 @@
-package com.hpms.jobservice.model;
-
+package com.hpms.applicationservice.model;
 
 import jakarta.persistence.*;
 import lombok.*;
@@ -20,18 +19,15 @@ public class QuestionAnswer {
 
     private String answer;
 
-    @ManyToOne (cascade = { CascadeType.DETACH,CascadeType.MERGE,
-                            CascadeType.PERSIST,CascadeType.REFRESH
-    })
-    @JoinColumn(name="question_id")
-    private Question question;
+    @Column(name="question_id", nullable = false)
+    private UUID questionId;
 
-/*
+
     @ManyToOne(fetch = FetchType.LAZY,cascade = {
             CascadeType.DETACH,CascadeType.MERGE,CascadeType.PERSIST,CascadeType.REFRESH
     })
     @JoinColumn(name="application_id")
     private JobApplication jobApplication;
-*/
+
 
 }

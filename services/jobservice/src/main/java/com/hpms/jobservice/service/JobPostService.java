@@ -15,6 +15,9 @@ public interface JobPostService {
     ApiResponse<?> getCompanyJobs(String token , int page, int size);
     ApiResponse<?> getNumberOfActiveJobPosts(String token);
     ApiResponse<?> getJobInitInfo(String token, UUID postId);
+
+    ApiResponse<?> getJobApplicationQuestions(UUID jobId);
+
     ApiResponse<?> updateInitJobInfo(String token, JobPostRequest jobPostRequest);
     ApiResponse<?> getJobAdvancedSetting(String token, UUID postId);
     ApiResponse<?> deleteNewJobPost(String token, UUID postId);

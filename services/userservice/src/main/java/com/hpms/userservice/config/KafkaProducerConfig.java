@@ -1,5 +1,6 @@
 package com.hpms.userservice.config;
 
+import com.hpms.commonlib.dto.DeleteUserRelatedEvent;
 import com.hpms.commonlib.dto.EmailEvent;
 import org.apache.kafka.clients.admin.NewTopic;
 import org.apache.kafka.clients.producer.ProducerConfig;
@@ -17,7 +18,7 @@ import org.springframework.kafka.support.serializer.JsonSerializer;
 import java.util.HashMap;
 import java.util.Map;
 
-@Configuration
+//@Configuration
 public class KafkaProducerConfig {
 
     @Value("${kafka.topics.email-events:email-events-topic}")
@@ -25,23 +26,6 @@ public class KafkaProducerConfig {
 
     @Value("${spring.kafka.bootstrap-servers:localhost:9092}")
     private String bootstrapServers;
-
-    @Bean
-    public ProducerFactory<String, EmailEvent> producerFactory() {
-        Map<String, Object> configProps = new HashMap<>();
-        configProps.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, bootstrapServers);
-
-        return new DefaultKafkaProducerFactory<>(
-                configProps,
-                new StringSerializer(),
-                new JsonSerializer<>()
-        );
-    }
-
-    @Bean
-    public KafkaTemplate<String, EmailEvent> kafkaTemplate() {
-        return new KafkaTemplate<>(producerFactory());
-    }
 
     @Bean
     public RecordMessageConverter converter() {

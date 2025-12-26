@@ -17,6 +17,11 @@ public class AccountSettingController {
         return settingService.deleteAccount(token);
     }
 
+//    @PostMapping("/delete-account-data")
+    public ApiResponse<?> deleteAccountData(@RequestHeader(name = "Authorization") String token) {
+        return settingService.deleteAccountData(token);
+    }
+
     @PostMapping("/undelete-account")
     public ApiResponse<?> unDeleteAccount(@RequestHeader(name = "Authorization") String token) {
         return settingService.undeleteAccount(token);

@@ -1,13 +1,15 @@
 package com.hpms.userservice.service.company;
 
 import com.hpms.commonlib.dto.ApiResponse;
-import com.hpms.jobservice.service.client.JobServiceClient;
+import com.hpms.commonlib.handler.ServiceCommunicationException;
+import com.hpms.userservice.service.client.JobServiceClient;
 import com.hpms.userservice.dto.company.*;
 import com.hpms.userservice.mapper.RecruiterInfoMapper;
 import com.hpms.userservice.model.Recruiter;
 import com.hpms.userservice.repository.CompanyRepository;
 import com.hpms.userservice.repository.RecruiterRepository;
 import com.hpms.userservice.utils.FrequentlyUsed;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -17,6 +19,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class RecruiterProfileServices {
 
     @Autowired
@@ -223,7 +226,13 @@ public class RecruiterProfileServices {
 
         int companyNumberOfMembers = companyRepository.getNumberOfRecruitersForCompany(recruiter.getCompany().getId());
 
-        int activePostsNumber = jobServiceClient.countRecruiterActiveJobs(recruiter.getId());
+        Integer activePostsNumber = null;
+
+        try {
+            activePostsNumber = jobServiceClient.countRecruiterActiveJobs(recruiter.getId());
+        } catch (ServiceCommunicationException e) {
+            log.warn("Job service unavailable for recruiter {}", recruiter.getId());
+        }
 
         return ApiResponse.builder()
                 .ok(true)

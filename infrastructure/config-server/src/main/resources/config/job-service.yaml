@@ -21,6 +21,15 @@ spring:
       value-serializer: org.springframework.kafka.support.serializer.JsonSerializer
       properties:
         spring.json.add.type.headers: false
+    consumer:
+      group-id: delete-user-related-service-group
+      auto-offset-reset: earliest
+      key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
+      value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
+      properties:
+        spring.json.trusted.packages: com.hpms.commonlibs.dto
+        spring.json.use.type.headers: false
+        spring.json.value.default.type: com.hpms.commonlib.dto.DeleteUserRelatedEvent
   servlet:
     multipart:
       enabled: true
@@ -34,6 +43,7 @@ spring:
 kafka:
   topics:
     email-events: email-events-topic
+    delete-user-related-events: delete-user-related-topic
 
 eureka:
   client:

@@ -3,7 +3,7 @@ package com.hpms.userservice.config.oauth2;
 import com.hpms.userservice.config.oauth2.user.OAuth2UserInfo;
 import com.hpms.userservice.config.oauth2.user.OAuth2UserInfoFactory;
 import com.hpms.userservice.constants.AuthProviders;
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.handler.OAuth2AuthenticationProcessingException;
 import com.hpms.userservice.model.jobseeker.JobSeeker;
 import com.hpms.userservice.model.User;

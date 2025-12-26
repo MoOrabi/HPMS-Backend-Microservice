@@ -3,7 +3,7 @@ package com.hpms.userservice.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hpms.userservice.constants.AuthProviders;
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.commonlib.constants.RoleEnum;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;

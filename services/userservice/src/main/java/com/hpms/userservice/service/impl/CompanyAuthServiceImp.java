@@ -3,7 +3,7 @@ package com.hpms.userservice.service.impl;
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.userservice.config.AuthenticationProviderService;
 import com.hpms.userservice.constants.AuthProviders;
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.dto.CompanyAuthReq;
 import com.hpms.userservice.dto.CompanyRegisterDto;
 import com.hpms.userservice.dto.LoginReq;

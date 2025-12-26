@@ -1,4 +1,4 @@
-package com.hpms.userservice.constants;
+package com.hpms.commonlib.constants;
 
 public enum RoleEnum {
     ROLE_JOBSEEKER,

@@ -3,7 +3,7 @@ package com.hpms.userservice.config;
 import com.hpms.commonlib.handler.BadRequestException;
 import com.hpms.commonlib.handler.ResourceNotFoundException;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
-import com.hpms.jobservice.service.client.JobServiceClient;
+import com.hpms.userservice.service.client.JobServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
 import org.springframework.context.annotation.Bean;

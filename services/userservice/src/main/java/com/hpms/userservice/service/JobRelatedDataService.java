@@ -1,7 +1,8 @@
 package com.hpms.userservice.service;
 
 import com.hpms.commonlib.handler.BadRequestException;
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.userservice.service.client.JobServiceClient;
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.dto.*;
 import com.hpms.userservice.mapper.*;
 import com.hpms.userservice.model.Company;
@@ -14,6 +15,7 @@ import com.hpms.userservice.repository.*;
 import com.hpms.userservice.repository.shared.JobNameRepository;
 import com.hpms.userservice.repository.shared.SkillRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
@@ -21,10 +23,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobRelatedDataService {
 
+    private final JobServiceClient jobServiceClient;
     private JobSeekerProfileRepository jobSeekerProfileRepository;
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
@@ -79,11 +83,7 @@ public class JobRelatedDataService {
         }
         IndustryDTO industryDTO = industryDTOMapper.apply(optionalIndustry.get());
 
-        boolean isJobPostSaved = false;
-
-        if(request.getJobSeekerCallerId() != null) {
-            isJobPostSaved = jobSeekerProfileRepository.isJobPostSaved(request.getJobSeekerCallerId(), request.getJobPostId());
-        }
+        Boolean isJobPostSaved = null;
 
         return JobRelatedDataDTO.builder()
                 .company(companyDTO)

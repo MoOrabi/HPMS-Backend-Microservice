@@ -15,7 +15,7 @@ import java.util.concurrent.CompletableFuture;
 @Slf4j
 public class EmailProducerService {
 
-    private final KafkaTemplate<String, EmailEvent> kafkaTemplate;
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Value("${kafka.topics.email-events:email-events-topic}")
     private String emailTopic;
@@ -23,7 +23,7 @@ public class EmailProducerService {
     public void sendEmailEvent(EmailEvent emailEvent) {
         log.info("Sending email event to Kafka: {}", emailEvent);
 
-        CompletableFuture<SendResult<String, EmailEvent>> future =
+        CompletableFuture<SendResult<String, Object>> future =
                 kafkaTemplate.send(emailTopic, emailEvent.getEventId(), emailEvent);
 
         future.whenComplete((result, ex) -> {

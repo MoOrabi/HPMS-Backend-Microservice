@@ -26,9 +26,4 @@ public interface JobSeekerProfileRepository extends JpaRepository<JobSeeker, UUI
 
     void deleteByLastName(String orabi);
 
-    @Query("SELECT CASE WHEN COUNT(sj) > 0 THEN true ELSE false END " +
-            "FROM JobSeeker js JOIN js.savedJobsIds sj " +
-            "WHERE js.id = :jobSeekerId AND sj = :jobPostId")
-    boolean isJobPostSaved(@Param("jobSeekerId") UUID jobSeekerId, @Param("jobPostId") UUID jobPostId);
-
 }

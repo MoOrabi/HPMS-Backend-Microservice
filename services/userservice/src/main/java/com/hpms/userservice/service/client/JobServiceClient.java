@@ -1,7 +1,6 @@
-package com.hpms.jobservice.service.client;
+package com.hpms.userservice.service.client;
 
 import com.hpms.userservice.dto.JobPostDto;
-import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.service.annotation.GetExchange;
 import org.springframework.web.service.annotation.HttpExchange;
@@ -19,4 +18,7 @@ public interface JobServiceClient {
 
     @GetExchange("/company-recent-jobs/{companyId}")
     List<JobPostDto> getCompnayRecentJobPosts(@PathVariable UUID companyId);
+
+    @GetExchange("/is-js-save-post")
+    Boolean isJobPostSaved(UUID jobSeekerCallerId, UUID jobPostId);
 }

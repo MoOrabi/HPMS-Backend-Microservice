@@ -8,7 +8,7 @@ import lombok.*;
 @NoArgsConstructor
 @Builder
 public class CompanyStatistics{
-    int companyActiveJobsNumber  ;
+    Integer companyActiveJobsNumber  ;
     int companyMembersNumber ;
     int pendingInvitations ;
 }

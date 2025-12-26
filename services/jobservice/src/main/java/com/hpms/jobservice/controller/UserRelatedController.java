@@ -35,4 +35,9 @@ public class UserRelatedController {
         return userRelatedService.getCompnayRecentJobPosts(companyId);
     }
 
+    @GetMapping("/is-js-save-post")
+    Boolean isJobPostSaved(UUID jobSeekerCallerId, UUID jobPostId) {
+        return userRelatedService.isJobPostSaved(jobSeekerCallerId, jobPostId);
+    }
+
 }

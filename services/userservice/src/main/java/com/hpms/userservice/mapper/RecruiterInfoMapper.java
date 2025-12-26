@@ -6,7 +6,7 @@ import org.mapstruct.Mapper;
 
 import java.util.List;
 
-@Mapper
+@Mapper(componentModel = "spring")
 public interface RecruiterInfoMapper {
     RecruiterInfo recruiterToInfo(Recruiter recruiter);
     List<RecruiterInfo> recruiterListToInfoList(List<Recruiter> recruiter);

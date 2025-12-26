@@ -1,12 +1,16 @@
 package com.hpms.jobservice.service.imp;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.commonlib.dto.PageResponse;
+import com.hpms.commonlib.handler.ServiceCommunicationException;
+import com.hpms.commonlib.util.PageUtils;
 import com.hpms.commonlib.util.PublicJwtTokenUtils;
 import com.hpms.jobservice.constants.EmploymentType;
 import com.hpms.jobservice.constants.JobType;
 import com.hpms.jobservice.constants.QuestionType;
 import com.hpms.jobservice.dto.*;
 import com.hpms.jobservice.mapper.JobPostMapper;
+import com.hpms.jobservice.mapper.QuestionMapper;
 import com.hpms.jobservice.model.JobPost;
 import com.hpms.jobservice.model.Question;
 import com.hpms.jobservice.repository.JobPostRepository;
@@ -15,11 +19,14 @@ import com.hpms.jobservice.service.JobPostService;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
+import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -27,6 +34,7 @@ import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class JobPostServiceImp implements JobPostService {
 
     private final JobPostRepository jobPostRepository;
@@ -37,6 +45,9 @@ public class JobPostServiceImp implements JobPostService {
 
     private final PublicJwtTokenUtils jwtTokenUtils;
     private final UserServiceClient userServiceClient;
+    private final QuestionMapper questionMapper;
+
+    private final KafkaTemplate<String, Object> kafkaTemplate;
 
     @Override
     public ApiResponse<?> getJobInitInfo(String token, UUID postId) {
@@ -85,6 +96,26 @@ public class JobPostServiceImp implements JobPostService {
                 .ok(true)
                 .status(HttpStatus.ACCEPTED.value())
                 .body(jobPostForUserResponse)
+                .build();
+    }
+
+    @Override
+    public ApiResponse<?> getJobApplicationQuestions(UUID jobId) {
+        List<Question> questionList = questionRepository.findByJobPostId(jobId);
+        String jobTitle = jobPostRepository.getJobTitleByJobPostId(jobId);
+        List<QuestionDto> questionDtosList = questionMapper.toDtoList(questionList);
+
+        JobApplicationFormDto jobApplicationFormDto = JobApplicationFormDto.builder()
+                .questionDtosList(questionDtosList)
+                .jobTitle(jobTitle)
+                .jobPostId(jobId)
+                .build();
+
+        return ApiResponse.builder()
+                .ok(true)
+                .status(HttpStatus.ACCEPTED.value())
+                .body(jobApplicationFormDto)
+                .message("Success")
                 .build();
     }
 
@@ -253,31 +284,24 @@ public class JobPostServiceImp implements JobPostService {
 //
 //    }
 //
-//    @Override
-//    @Transactional
-//    @Modifying
-//    public ApiResponse<?> toggleSavedJob(String token, UUID id) {
-//        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
-//        Optional<JobSeeker> jobSeekerOptional = jobSeekerRepository.findById(userId);
-//        Optional<JobPost> jobPostOptional = jobPostRepository.findById(id);
-//        if(jobPostOptional.isEmpty() || jobSeekerOptional.isEmpty()) return ApiResponse.getDefaultErrorResponse();
-//        boolean isSavedJob = false;
-//        JobSeeker jobSeeker =  jobSeekerOptional.get();
-//        Set<JobPost> newSavedJobs = new HashSet<>();
-//        for(JobPost job : jobSeeker.getSavedJobs()){
-//            if(job.getId() != id) {
-//                newSavedJobs.add(job);
-//            }else{
-//                isSavedJob = true;
-//            }
-//        }
-//        if(!isSavedJob){
-//            newSavedJobs.add(jobPostOptional.get());
-//        }
-//        jobSeeker.setSavedJobs(newSavedJobs);
-//        jobSeekerRepository.save(jobSeeker);
-//        return ApiResponse.getDefaultSuccessResponse();
-//    }
+
+    @Transactional
+    @Modifying
+    public ApiResponse<?> toggleSavedJob(String token, UUID id) {
+        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        Optional<JobPost> jobPostOptional = jobPostRepository.findById(id);
+        if(jobPostOptional.isEmpty()) return ApiResponse.getDefaultErrorResponse();
+        JobPost jobPost = jobPostOptional.get();
+        if(jobPost.getJobseekerSavers().contains(userId)) {
+            jobPost.getJobseekerSavers().remove(userId);
+        }
+        else {
+            jobPost.getJobseekerSavers().add(userId);
+        }
+        jobPostRepository.save(jobPost);
+
+        return ApiResponse.getDefaultSuccessResponse();
+    }
 
 //    private int getApplicationNewActionsNumber (JobApplication application) {
 //
@@ -314,44 +338,39 @@ public class JobPostServiceImp implements JobPostService {
                 .build();
     }
 
-//    @Override
-//    public ApiResponse<?> saveJobPost(String token, UUID postId) {
-//        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
-//        Optional<JobSeeker> jobSeekerOptional = jobSeekerRepository.findById(userId);
-//        if(jobSeekerOptional.isEmpty()){
-//            return ApiResponse.getDefaultErrorResponse();
-//        }
-//
-//        Optional<JobPost> jobPostOptional = jobPostRepository.findById(postId);
-//        if(jobPostOptional.isEmpty()){
-//            return ApiResponse.getDefaultErrorResponse();
-//        }
-//
-//        JobSeeker jobSeeker = jobSeekerOptional.get();
-//        jobSeeker.getSavedJobs().add(jobPostOptional.get());
-//        jobSeekerRepository.save(jobSeeker);
-//
-//        return ApiResponse.builder()
-//                .ok(true)
-//                .status(HttpStatus.ACCEPTED.value())
-//                .message("Job Saved")
-//                .build();
-//    }
+    public ApiResponse<?> saveJobPost(String token, UUID postId) {
+        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+
+        Optional<JobPost> jobPostOptional = jobPostRepository.findById(postId);
+        if(jobPostOptional.isEmpty()){
+            return ApiResponse.getDefaultErrorResponse();
+        }
+
+        JobPost jobPost = jobPostOptional.get();
+        jobPost.getJobseekerSavers().add(userId);
+        jobPostRepository.save(jobPost);
+
+        return ApiResponse.builder()
+                .ok(true)
+                .status(HttpStatus.ACCEPTED.value())
+                .message("Job Saved")
+                .build();
+    }
 
     @Override
     public ApiResponse<?> getSavedJobs(String token,int page , int size) {
-//        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
-//
-//        Pageable pageable = PageRequest.of(page, size);
-//        Page<JobPost> jobPostPage = jobPostRepository.findSavedJobsByJobSeekerId(userId,pageable);
-//        Page<JobPostDto> jobPostDtoPage = jobPostPage.map(jobPost -> jobPostMapper.toPublicDto(jobPost,userId));
-//        return ApiResponse.builder()
-//                .ok(true)
-//                .status(HttpStatus.ACCEPTED.value())
-//                .message("success")
-//                .body(jobPostDtoPage)
-//                .build();
-        return null;
+        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<JobPost> jobPostPage = jobPostRepository.findSavedJobsByJobSeekerId(userId,pageable);
+        Page<JobPostDto> jobPostDtoPage = jobPostPage.map(jobPost -> jobPostMapper.toPublicDto(jobPost,userId));
+        PageResponse<JobPostDto> response = PageUtils.toPageResponse(jobPostDtoPage);
+        return ApiResponse.builder()
+                .ok(true)
+                .status(HttpStatus.ACCEPTED.value())
+                .message("success")
+                .body(response)
+                .build();
     }
 
 
@@ -377,8 +396,13 @@ public class JobPostServiceImp implements JobPostService {
         UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
 
         JobPost jobPost = createJob(jobPostRequest);
-
-        CompanyAndRecruiterIds companyAndRecruiterIds = userServiceClient.getCompanyAndRecruiterIds(userId);
+        CompanyAndRecruiterIds companyAndRecruiterIds = null;
+        try {
+            companyAndRecruiterIds = userServiceClient.getCompanyAndRecruiterIds(userId);
+        } catch (ServiceCommunicationException e) {
+            log.warn("User service unavailable for user {}", userId);
+            companyAndRecruiterIds = CompanyAndRecruiterIds.builder().build();
+        }
 
         jobPost.setCompanyId(companyAndRecruiterIds.getCompanyId());
         jobPost.setCreatorId(companyAndRecruiterIds.getRecuiterId());

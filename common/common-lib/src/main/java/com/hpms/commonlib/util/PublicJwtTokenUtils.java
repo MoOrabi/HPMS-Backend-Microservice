@@ -8,6 +8,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 import javax.crypto.SecretKey;
+import java.util.UUID;
 import java.util.function.Function;
 
 @Service
@@ -39,5 +40,9 @@ public class PublicJwtTokenUtils {
     }
     public String extractId(String token) {
         return extractClaim(token, Claims::getId);
+    }
+
+    public UUID extractUUID(String token) {
+        return UUID.fromString(extractClaim(token, Claims::getId));
     }
 }

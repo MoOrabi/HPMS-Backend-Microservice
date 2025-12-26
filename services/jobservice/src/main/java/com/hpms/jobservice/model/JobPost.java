@@ -75,6 +75,13 @@ public class JobPost {
 //    @OneToMany(fetch = FetchType.LAZY, mappedBy = "jobPost", cascade = CascadeType.ALL)
 //    private List<JobApplication> jobApplications;
 
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "jobseeker_saved_jobs",
+            joinColumns = @JoinColumn(name = "job_post_id")
+    )
+    @Column(name = "job_seeker_id")
+    private Set<UUID> jobseekerSavers;
 
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "jobPost" ,cascade = CascadeType.ALL)
     private List<Question> questions;

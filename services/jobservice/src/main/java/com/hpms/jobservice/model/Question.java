@@ -34,9 +34,5 @@ public class Question {
     @Enumerated(EnumType.STRING)
     private QuestionType questionType ;
 
-    @OneToMany(mappedBy = "question",cascade = CascadeType.ALL,fetch = FetchType.LAZY)
-    @JsonIgnore
-    private List<QuestionAnswer> questionAnswers;
-
 
 }

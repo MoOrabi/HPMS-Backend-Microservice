@@ -1,14 +1,12 @@
 package com.hpms.jobservice.mapper;
 
-import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.jobservice.dto.*;
 import com.hpms.jobservice.model.JobPost;
+import com.hpms.jobservice.repository.JobPostRepository;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import lombok.AllArgsConstructor;
-import lombok.NoArgsConstructor;
-import lombok.RequiredArgsConstructor;
-import org.mapstruct.Mapper;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
 
@@ -18,9 +16,11 @@ import java.util.UUID;
 
 @Component
 @AllArgsConstructor
+@Slf4j
 public class JobPostMapper {
 
     private final UserServiceClient userServiceClient;
+    private final JobPostRepository jobPostRepository;
 
     public Page<JobPostDto> toPageDto(Page<JobPost> jobPostPage){
         return jobPostPage.map(this::toPublicDto);
@@ -36,7 +36,7 @@ public class JobPostMapper {
         }
 
         JobRelatedDataDTO jobRelatedDataDTO = getJobRelatedDataDTO(jobPost, jobSeekerId);
-        Boolean isSaved  = jobRelatedDataDTO.getIsJobSavedForJS();
+        boolean isSaved  = jobPostRepository.isJobPostSaved(jobSeekerId, jobPost.getId());
 
         return JobPostDto.builder()
                 .id(jobPost.getId())
@@ -59,19 +59,24 @@ public class JobPostMapper {
     }
 
     private JobRelatedDataDTO getJobRelatedDataDTO(JobPost jobPost, UUID jobSeekerId) {
+        try {
+            return userServiceClient.getJobsRelatedData(
+                    JobRelatedDataRequest
+                            .builder()
+                            .jobPostId(jobPost.getId())
+                            .jobNameId(jobPost.getJobNameId())
+                            .companyId(jobPost.getCompanyId())
+                            .creatorId(jobPost.getCreatorId())
+                            .recruiterIds(jobPost.getRecruiterIds())
+                            .skillIds(jobPost.getSkillIds())
+                            .industryId(jobPost.getIndustryId())
+                            .jobSeekerCallerId(jobSeekerId)
+                            .build());
+        } catch (ServiceCommunicationException e) {
+            log.warn("User service unavailable for job seeker {}", jobSeekerId);
+            return JobRelatedDataDTO.builder().build();
+        }
 
-        return userServiceClient.getJobsRelatedData(
-                JobRelatedDataRequest
-                        .builder()
-                        .jobPostId(jobPost.getId())
-                        .jobNameId(jobPost.getJobNameId())
-                        .companyId(jobPost.getCompanyId())
-                        .creatorId(jobPost.getCreatorId())
-                        .recruiterIds(jobPost.getRecruiterIds())
-                        .skillIds(jobPost.getSkillIds())
-                        .industryId(jobPost.getIndustryId())
-                        .jobSeekerCallerId(jobSeekerId)
-                        .build());
     }
 
     public JobPostDto toPublicDto(JobPost jobPost){

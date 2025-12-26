@@ -35,4 +35,8 @@ public class UserRelatedServiceImpl {
         Page<JobPost> jobPostPage = jobPostRepository.getByCompanyId(companyId,pageable);
         return jobPostPage.map(jobPostMapper::toPublicDto).stream().toList();
     }
+
+    public Boolean isJobPostSaved(UUID jobSeekerCallerId, UUID jobPostId) {
+        return jobPostRepository.isJobPostSaved(jobSeekerCallerId, jobPostId);
+    }
 }

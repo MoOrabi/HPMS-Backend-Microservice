@@ -51,6 +51,11 @@ public class JobPostController {
         return jobPostService.getJobInfoForAppPage(token, postId);
     }
 
+    @GetMapping("/questions/{jobId}")
+    public ApiResponse<?> getJobApplicationQuestions(@PathVariable UUID jobId){
+        return  jobPostService.getJobApplicationQuestions(jobId);
+    }
+
     @GetMapping("/advanced-setting/{postId}")
     public ApiResponse<?> getJobAdvancedSetting(@Valid @RequestHeader("Authorization") String token,
                                                 @PathVariable("postId") UUID postId) {
@@ -80,11 +85,11 @@ public class JobPostController {
         return this.jobPostService.publishOrSaveJob(token, JobSettingDto);
     }
 
-//    @PutMapping("/{postId}/save")
-//    public ApiResponse<?> saveJobPost(@Valid @RequestHeader("Authorization") String token,
-//                                      @PathVariable UUID postId){
-//        return  jobPostService.saveJobPost(token, postId);
-//    }
+    @PutMapping("/{postId}/save")
+    public ApiResponse<?> saveJobPost(@Valid @RequestHeader("Authorization") String token,
+                                      @PathVariable UUID postId){
+        return  jobPostService.saveJobPost(token, postId);
+    }
 
     @PutMapping("/{postId}/close")
     public ApiResponse<?> closeJobPost(@RequestHeader(name = "Authorization") String token,
@@ -99,10 +104,10 @@ public class JobPostController {
         return jobPostService.getSavedJobs(token,page,size);
     }
 
-//    @PutMapping("/saved/{id}")
-//    public ApiResponse<?> toggleSavedJob(@Valid @RequestHeader("Authorization") String token, @PathVariable UUID id) {
-//        return jobPostService.toggleSavedJob(token,id);
-//    }
+    @PutMapping("/saved/{id}")
+    public ApiResponse<?> toggleSavedJob(@Valid @RequestHeader("Authorization") String token, @PathVariable UUID id) {
+        return jobPostService.toggleSavedJob(token,id);
+    }
 
 
     @DeleteMapping("/new/{postId}")

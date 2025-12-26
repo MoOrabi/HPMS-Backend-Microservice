@@ -18,5 +18,5 @@ public class JobRelatedDataDTO {
     private List<SkillDTO> skills;
     private IndustryDTO industry;
     private JobNameDTO jobName;
-    private boolean isJobSavedForJS;
+    private Boolean isJobSavedForJS;
 }

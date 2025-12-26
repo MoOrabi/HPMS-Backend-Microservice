@@ -1,6 +1,6 @@
 package com.hpms.userservice.mapper;
 
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.dto.JobPostCreatorDTO;
 import com.hpms.userservice.model.Recruiter;
 import com.hpms.userservice.model.User;

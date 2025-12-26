@@ -3,7 +3,6 @@ spring:
     name: user-service
   config:
     import: optional:configserver:http://localhost:8888
-
 app:
   client-url: http://localhost:1400
 

@@ -2,7 +2,7 @@ package com.hpms.userservice.utils;
 
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.commonlib.util.FileUploadUtil;
-import com.hpms.userservice.constants.RoleEnum;
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.model.*;
 import com.hpms.userservice.model.jobseeker.JobSeeker;
 import com.hpms.userservice.model.jobseeker.WorkSample;

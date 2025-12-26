@@ -1,7 +1,8 @@
 package com.hpms.userservice.service.company;
 
 import com.hpms.commonlib.dto.ApiResponse;
-import com.hpms.jobservice.service.client.JobServiceClient;
+import com.hpms.commonlib.handler.ServiceCommunicationException;
+import com.hpms.userservice.service.client.JobServiceClient;
 import com.hpms.userservice.dto.JobPostDto;
 import com.hpms.userservice.dto.company.*;
 import com.hpms.userservice.mapper.company.AboutInfoMapper;
@@ -16,6 +17,7 @@ import com.hpms.userservice.repository.shared.UserSocialLinkRepository;
 import com.hpms.userservice.utils.FrequentlyUsed;
 import com.hpms.userservice.utils.JwtTokenUtils;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -26,6 +28,7 @@ import java.util.*;
 
 @Service
 @AllArgsConstructor
+@Slf4j
 public class CompanyProfileServices {
 
     private CompanyRepository companyRepository;
@@ -56,7 +59,12 @@ public class CompanyProfileServices {
         if (company != null) {
             AllCompanyInfoDto allCompanyInfoDto = companyMapper.toDto(company);
 
-            List<JobPostDto> jobPostDtoPage = jobServiceClient.getCompnayRecentJobPosts(companyId);
+            List<JobPostDto> jobPostDtoPage = null;
+            try {
+                jobPostDtoPage = jobServiceClient.getCompnayRecentJobPosts(companyId);
+            } catch (ServiceCommunicationException e) {
+                log.warn("Job service unavailable for company {}", companyId);
+            }
             allCompanyInfoDto.setJobPosts(jobPostDtoPage);
             return ApiResponse.builder()
                     .ok(true)
@@ -312,7 +320,12 @@ public class CompanyProfileServices {
 
         List<Integer> companyStatisticsNumbers = companyRepository.getCompanyStatisticsById(UUID.fromString(companyId)).get(0);
 
-        int activeJobsCount = jobServiceClient.countCompanyActiveJobs(UUID.fromString(companyId));
+        Integer activeJobsCount = null;
+        try {
+            activeJobsCount = jobServiceClient.countCompanyActiveJobs(UUID.fromString(companyId));
+        } catch (ServiceCommunicationException e) {
+            log.warn("Job service unavailable for company {}", companyId);
+        }
 
         return ApiResponse.builder()
                 .ok(true)
