@@ -30,8 +30,6 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     private final JobApplicationRepository jobApplicationRepository;
 
-    private final PublicJwtTokenUtils jwtTokenUtils;
-
     private final ApplicationUtils applicationUtils;
 
     private final UserServiceClient userServiceClient;
@@ -40,7 +38,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> getJobApplicationAnswers(String token, UUID appId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobApplication> optionalJobApplication = jobApplicationRepository.findById(appId);
         if(optionalJobApplication.isEmpty()){
             return ApiResponse.builder()
@@ -53,9 +51,15 @@ public class JobApplicationServiceImp implements JobApplicationService {
             if(applicationUtils.checkUserIsConcernedWithApplication(userId, jobApplication)){
 
                 List<QuestionAnswer> questionAnswers = jobApplication.getQuestionAnswer();
+                List<QuestionAnswerDto> questionAnswerDtos = questionAnswers.stream().map(answer ->
+                        QuestionAnswerDto.builder()
+                                .questionAnswer(answer.getAnswer())
+                                .questionId(answer.getQuestionId())
+                                .build()
+                ).toList();
                 List<ApplicationAnswerDTO> applicationAnswerDTOS = new ArrayList<>();
                 try {
-                    applicationAnswerDTOS = jobServiceClient.getQuestionDetailsFromAnswers(questionAnswers);
+                    applicationAnswerDTOS = jobServiceClient.getQuestionDetailsFromAnswers(questionAnswerDtos);
                 } catch (ServiceCommunicationException e) {
                     log.error(e.getMessage(), e);
                 }
@@ -112,7 +116,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> getJobApplicationProfileInfo(String token, UUID appId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){
@@ -159,7 +163,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> submitJobApplication(String jobSeekerToken, UUID jobId, List<QuestionAnswerDto> answerDtoList) {
-        UUID jobSeekerId = jwtTokenUtils.extractUUID(jobSeekerToken.substring(7));
+        UUID jobSeekerId = PublicJwtTokenUtils.extractUUID(jobSeekerToken.substring(7));
         boolean isSubmittedBefore = jobApplicationRepository.existsByJobPostIdAndJobSeekerId(jobId,jobSeekerId) ;
         if(isSubmittedBefore){
             return ApiResponse.builder()
@@ -191,7 +195,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> deleteJobApplication(String jobSeekerToken, UUID jobApplicationId) {
-        UUID jobSeekerId = jwtTokenUtils.extractUUID(jobSeekerToken.substring(7));
+        UUID jobSeekerId = PublicJwtTokenUtils.extractUUID(jobSeekerToken.substring(7));
         Optional<JobApplication> jobApplicationOptional = jobApplicationRepository.getByIdAndJobSeekerId(jobApplicationId,jobSeekerId);
         if(jobApplicationOptional.isEmpty()){
             return ApiResponse.getDefaultErrorResponse();
@@ -218,7 +222,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> getApplicationNumbersByStatus(String token, UUID postId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         JobApplicationNumberPerStatus applicationNumberPerStatus = getPostNumbersPerStatus(postId);
 
         return ApiResponse.builder()
@@ -230,7 +234,7 @@ public class JobApplicationServiceImp implements JobApplicationService {
 
     @Override
     public ApiResponse<?> isJobSeekerAppliedToJobPost(String token, UUID postId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         boolean isApplied = jobApplicationRepository.existsByJobPostIdAndJobSeekerId(postId,userId);
 
         return ApiResponse.builder()

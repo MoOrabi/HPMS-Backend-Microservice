@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.HashSet;
 import java.util.Set;
 
 @Getter
@@ -15,5 +16,5 @@ public class JobSeekerProfessionalInfoDTO {
 
     private String yearsOfExperience;
 
-    private Set<String> skills;
+    private Set<String> skills = new HashSet<>();
 }

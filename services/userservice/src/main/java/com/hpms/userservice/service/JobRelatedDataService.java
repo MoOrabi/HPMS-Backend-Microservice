@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -125,5 +126,19 @@ public class JobRelatedDataService {
                             .build();
         }
         throw new BadRequestException("No Recruiter Or Company exists with this id.");
+    }
+
+    public List<CompanyLocationAndLogoDTO> getCompanyLocationAndLogos(List<UUID> companyIds) {
+        List<CompanyLocationAndLogoDTO> dtos = new ArrayList<>();
+        companyIds
+            .forEach(companyId -> {
+                Optional<Company> optionalCompany = companyRepository.findById(companyId);
+                optionalCompany.ifPresent(company -> dtos.add(CompanyLocationAndLogoDTO.builder()
+                                .id(company.getId())
+                                .logo(company.getLogo())
+                                .location(company.getMainBranchLocation()!=null?company.getMainBranchLocation().getCity() + " " + company.getMainBranchLocation().getCountry():null)
+                        .build()));
+            });
+        return dtos;
     }
 }

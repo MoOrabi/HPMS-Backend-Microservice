@@ -2,7 +2,7 @@ package com.hpms.applicationservice.service.impl;
 
 import com.hpms.applicationservice.constants.ApplicationStatus;
 import com.hpms.applicationservice.constants.TimelineEventType;
-import com.hpms.applicationservice.dto.TimelineEventCreatorNameAndPhoto;
+import com.hpms.applicationservice.dto.CreatorNameAndPhoto;
 import com.hpms.applicationservice.dto.TimelineEventResponse;
 import com.hpms.applicationservice.model.JobApplication;
 import com.hpms.applicationservice.model.TimelineEvent;
@@ -34,8 +34,6 @@ public class TimelineEventService {
 
     private final TimelineEventRepository timelineRepository;
 
-    private final PublicJwtTokenUtils tokenUtils;
-
     private final UserServiceClient userServiceClient;
 
     public ApiResponse<?> moveApplication(String token, UUID appId, String applicationStatus) {
@@ -45,7 +43,7 @@ public class TimelineEventService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
 
             if (applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication)){
                 jobApplication.setStatus(Enum.valueOf(ApplicationStatus.class, applicationStatus));
@@ -79,7 +77,7 @@ public class TimelineEventService {
 
     public ApiResponse<?> getTimelineEventsForApplication(String token, UUID appId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){
@@ -94,15 +92,15 @@ public class TimelineEventService {
                 List<TimelineEvent> timelineEvents = timelineRepository.findByApplicationIdOrderByCreatedAtDesc(appId);
                 List<TimelineEventResponse> timelineEventResponses = new ArrayList<>();
                 for(TimelineEvent event: timelineEvents){
-                    TimelineEventCreatorNameAndPhoto timelineEventCreatorNameAndPhoto = TimelineEventCreatorNameAndPhoto
+                    CreatorNameAndPhoto creatorNameAndPhoto = CreatorNameAndPhoto
                             .builder().build();
                     try {
-                        timelineEventCreatorNameAndPhoto = userServiceClient.getCreatorNameAndPhoto(event.getCreatorId());
+                        creatorNameAndPhoto = userServiceClient.getCreatorNameAndPhoto(event.getCreatorId());
                     } catch (ServiceCommunicationException e) {
                         log.error(e.getMessage(), e);
                     }
-                    String name = timelineEventCreatorNameAndPhoto.getName();
-                    String photo = timelineEventCreatorNameAndPhoto.getPhotoUrl();
+                    String name = creatorNameAndPhoto.getName();
+                    String photo = creatorNameAndPhoto.getPhotoUrl();
 
                     TimelineEventResponse eventResponse = TimelineEventResponse.builder()
                                     .id(event.getId())
@@ -133,30 +131,4 @@ public class TimelineEventService {
         }
 
     }
-
-//    private String getCreatorName(TimelineEvent event) {
-//        String name = "";
-//        User user = event.getCreator();
-//        if(user.getRole().equals(RoleEnum.ROLE_COMPANY)){
-//            Company creator = companyRepository.findById(user.getId()).get();
-//            name = creator.getManagerFirstName()+ " " + creator.getManagerLastName();
-//        }else if(user.getRole().equals(RoleEnum.ROLE_RECRUITER)){
-//            Recruiter creator = recruiterRepository.findById(user.getId()).get();
-//            name = creator.getFirstName() + " " + creator.getLastName();
-//        }
-//        return name;
-//    }
-//
-//    private String getCreatorPhoto(TimelineEvent event) {
-//        String photo = "";
-//        User user = event.getCreator();
-//        if(user.getRole().equals(RoleEnum.ROLE_COMPANY)){
-//            Company creator = companyRepository.findById(user.getId()).get();
-//            photo = creator.getLogo();
-//        }else if(user.getRole().equals(RoleEnum.ROLE_RECRUITER)){
-//            Recruiter creator = recruiterRepository.findById(user.getId()).get();
-//            photo = creator.getProfilePhoto();
-//        }
-//        return photo;
-//    }
 }

@@ -22,6 +22,8 @@ public class GatewayApplication {
 						.uri("lb://USER-SERVICE"))
 				.route("jobs_path", r -> r.path("/api/jobs/**")
 						.uri("lb://JOB-SERVICE"))
+				.route("applications_path", r -> r.path("/api/apps/**")
+						.uri("lb://APPLICATION-SERVICE"))
 //				.route("host_route", r -> r.host("*.myhost.org")
 //						.uri("https://httpbin.org"))
 //				.route("rewrite_route", r -> r.host("*.rewrite.org")
@@ -35,7 +37,7 @@ public class GatewayApplication {
 //						.uri("https://httpbin.org"))
 //				.route("limit_route", r -> r
 //						.host("*.limited.org").and().path("/anything/**")
-////						.filters(f -> f.requestRateLimiter(c -> c.setRateLimiter(redisRateLimiter())))
+//						.filters(f -> f.requestRateLimiter(c -> c.setRateLimiter(redisRateLimiter())))
 //						.uri("https://httpbin.org"))
 				.build();
 	}

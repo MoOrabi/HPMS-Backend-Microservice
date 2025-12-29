@@ -33,6 +33,7 @@
 		<module>services/userservice</module>
 		<module>services/emailservice</module>
 		<module>services/jobservice</module>
+		<module>services/applicationservice</module>
         <module>common/common-lib</module>
     </modules>
 	<properties>

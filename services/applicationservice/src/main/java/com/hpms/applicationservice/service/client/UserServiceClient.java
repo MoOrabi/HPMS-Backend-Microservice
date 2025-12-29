@@ -2,7 +2,7 @@ package com.hpms.applicationservice.service.client;
 
 import com.hpms.applicationservice.dto.ApplicantDTO;
 import com.hpms.applicationservice.dto.JobSeekerAllInfoDTO;
-import com.hpms.applicationservice.dto.TimelineEventCreatorNameAndPhoto;
+import com.hpms.applicationservice.dto.CreatorNameAndPhoto;
 import com.hpms.commonlib.constants.RoleEnum;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.service.annotation.GetExchange;
@@ -10,7 +10,7 @@ import org.springframework.web.service.annotation.HttpExchange;
 
 import java.util.UUID;
 
-@HttpExchange(url = "http://user-service/api/users")
+@HttpExchange(url = "http://user-service/api/users/apps")
 public interface UserServiceClient {
 
     @GetExchange("/get-role/{user-id}")
@@ -20,7 +20,7 @@ public interface UserServiceClient {
     ApplicantDTO getApplicantInfo(@PathVariable UUID userId);
 
     @GetExchange("/creator-name-photo/{user-id}")
-    TimelineEventCreatorNameAndPhoto getCreatorNameAndPhoto(@PathVariable(name = "user-id") UUID userId);
+    CreatorNameAndPhoto getCreatorNameAndPhoto(@PathVariable(name = "user-id") UUID userId);
 
     @GetExchange("/creator-name/{user-id}")
     String getCreatorName(@PathVariable(name = "user-id") UUID userId);

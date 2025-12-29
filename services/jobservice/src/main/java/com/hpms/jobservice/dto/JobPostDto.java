@@ -25,7 +25,7 @@ public class JobPostDto {
     private int maxExperienceYears;
     private String industry;
     private String jobName;
-    private int applicationNum ;
+    private Integer applicationNum ;
     private String isApplied ;
     private List<String> skills;
     private boolean saved;

@@ -10,6 +10,7 @@ import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.commonlib.util.FileUploadUtil;
 import com.hpms.commonlib.util.PublicJwtTokenUtils;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -21,19 +22,14 @@ import java.util.*;
 
 @Component
 @Slf4j
+@RequiredArgsConstructor
 public class ApplicationUtils {
 
-    @Autowired
-    private JobApplicationRepository jobApplicationRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
-    @Autowired
-    private PublicJwtTokenUtils tokenUtils;
+    private final OfferRepository offerRepository;
 
-    @Autowired
-    private OfferRepository offerRepository;
-
-    @Autowired
-    private JobServiceClient jobServiceClient;
+    private final JobServiceClient jobServiceClient;
 
     public ApiResponse<?> getJobApplication(UUID jobApplicationId) {
         Optional<JobApplication> jobApplicationOptional = jobApplicationRepository
@@ -80,7 +76,7 @@ public class ApplicationUtils {
                                                          int sizeInKiloBytes, String directory,
                                                          String successMessage,
                                                          HashSet<String> allowedExtensions, UUID offerId) throws Exception {
-        UUID userId = UUID.fromString(tokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         String fileName = StringUtils.cleanPath(Objects
                 .requireNonNull(file.getOriginalFilename()));
 

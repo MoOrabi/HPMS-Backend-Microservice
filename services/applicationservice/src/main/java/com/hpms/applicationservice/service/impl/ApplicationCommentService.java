@@ -13,6 +13,7 @@ import com.hpms.applicationservice.repository.TimelineEventRepository;
 import com.hpms.applicationservice.util.ApplicationUtils;
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.commonlib.util.PublicJwtTokenUtils;
+import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
@@ -23,25 +24,18 @@ import java.util.Optional;
 import java.util.UUID;
 
 @Service
+@RequiredArgsConstructor
 public class ApplicationCommentService {
 
-    @Autowired
-    private PublicJwtTokenUtils tokenUtils;
+    private final ApplicationCommentRepository applicationCommentRepository;
 
-    @Autowired
-    private ApplicationCommentRepository applicationCommentRepository;
+    private final JobApplicationRepository jobApplicationRepository;
 
-    @Autowired
-    private JobApplicationRepository jobApplicationRepository;
+    private final ApplicationUtils applicationUtils;
 
-    @Autowired
-    private ApplicationUtils applicationUtils;
+    private final ApplicationCommentMapper applicationCommentMapper;
 
-    @Autowired
-    private ApplicationCommentMapper applicationCommentMapper;
-
-    @Autowired
-    private TimelineEventRepository timelineRepository;
+    private final TimelineEventRepository timelineRepository;
 
     public ApiResponse<?> addApplicationComment(String token, ApplicationCommentDTO commentDTO) {
 
@@ -51,7 +45,7 @@ public class ApplicationCommentService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
 
             System.out.println(jobApplication.getId());
             System.out.println(applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication));
@@ -93,7 +87,7 @@ public class ApplicationCommentService {
 
     public ApiResponse<?> getCommentsOfApplication(String token, UUID appId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){

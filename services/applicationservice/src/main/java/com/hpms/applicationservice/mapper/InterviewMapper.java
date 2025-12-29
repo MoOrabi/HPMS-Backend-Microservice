@@ -3,10 +3,10 @@ package com.hpms.applicationservice.mapper;
 import com.hpms.applicationservice.dto.InterviewDTO;
 import com.hpms.applicationservice.model.Interview;
 import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Mapper
 public class InterviewMapper {
 
     public Interview interviewDTOToInterview(InterviewDTO interviewDTO) {

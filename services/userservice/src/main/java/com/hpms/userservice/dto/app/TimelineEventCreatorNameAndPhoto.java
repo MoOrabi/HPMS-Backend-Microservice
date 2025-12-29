@@ -1,4 +1,4 @@
-package com.hpms.applicationservice.dto;
+package com.hpms.userservice.dto.app;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

@@ -4,5 +4,5 @@ spring:
   config:
     import: optional:configserver:http://localhost:8888
 app:
-  client-url: http://localhost:1400
+  client-url: http://localhost:4200
 

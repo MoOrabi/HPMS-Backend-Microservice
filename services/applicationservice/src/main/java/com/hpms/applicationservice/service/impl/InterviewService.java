@@ -27,9 +27,6 @@ import java.util.UUID;
 public class InterviewService {
 
     @Autowired
-    private PublicJwtTokenUtils tokenUtils;
-
-    @Autowired
     private InterviewRepository interviewRepository;
 
     @Autowired
@@ -52,7 +49,7 @@ public class InterviewService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
             if(applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication)){
                 Evaluation evaluation = Evaluation.builder()
                         .title(interviewDTO.getTitle())
@@ -99,7 +96,7 @@ public class InterviewService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
             if (applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication)){
                 Optional<Interview> optionalInterview = interviewRepository.findById(evaluationId);
 
@@ -131,7 +128,7 @@ public class InterviewService {
 
     public ApiResponse<?> editInterviewStatus(String token, UUID evaluationId, InterviewStatus interviewStatus) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Interview> optionalInterview = interviewRepository.findById(evaluationId);
 
         if(optionalInterview.isEmpty()){
@@ -174,7 +171,7 @@ public class InterviewService {
 
     public ApiResponse<?> deleteInterview(String token, UUID evaluationId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Interview> optionalInterview = interviewRepository.findById(evaluationId);
 
         if(optionalInterview.isEmpty()){
@@ -206,7 +203,7 @@ public class InterviewService {
 
     public ApiResponse<?> getInterviewForEmployer(String token, UUID interviewId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Interview> optionalInterview = interviewRepository.findById(interviewId);
 
         if(optionalInterview.isEmpty()){

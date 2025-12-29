@@ -4,6 +4,7 @@ import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.jobservice.dto.*;
 import com.hpms.jobservice.model.JobPost;
 import com.hpms.jobservice.repository.JobPostRepository;
+import com.hpms.jobservice.service.client.AppServiceClient;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -20,6 +21,7 @@ import java.util.UUID;
 public class JobPostMapper {
 
     private final UserServiceClient userServiceClient;
+    private final AppServiceClient appServiceClient;
     private final JobPostRepository jobPostRepository;
 
     public Page<JobPostDto> toPageDto(Page<JobPost> jobPostPage){
@@ -84,11 +86,17 @@ public class JobPostMapper {
             return null;
         }
 
+        Integer applicationsNumber = null;
+        try {
+            applicationsNumber = appServiceClient.getNumberOfApplications(jobPost.getId());
+        } catch (ServiceCommunicationException e) {
+            log.warn("Application service unavailable for job post {}", jobPost.getId());
+        }
         JobRelatedDataDTO jobRelatedDataDTO = getJobRelatedDataDTO(jobPost, null);
         return JobPostDto.builder()
                 .id(jobPost.getId())
                 .companyImageUrl(jobRelatedDataDTO.getCompany().getImageUrl())
-//                .applicationNum(jobPost.getJobApplications().size())
+                .applicationNum(applicationsNumber)
                 .jobTitle(jobPost.getJobTitle())
                 .jobType(jobPost.getJobType().getValue())
                 .company(jobRelatedDataDTO.getCompany().getName())
@@ -99,7 +107,7 @@ public class JobPostMapper {
                 .maxExperienceYears(jobPost.getMaxExperienceYears())
                 .jobName(jobRelatedDataDTO.getJobName().getName())
                 .industry(jobRelatedDataDTO.getIndustry().getName())
-                .skills(jobRelatedDataDTO.getSkills().stream().map(skillDTO -> skillDTO.getName()).toList())
+                .skills(jobRelatedDataDTO.getSkills().stream().map(SkillDTO::getName).toList())
                 .build();
 
     }
@@ -206,7 +214,7 @@ public class JobPostMapper {
         if ( jobPost == null ) {
             return null;
         }
-//        boolean isSaved  = jobSeekerProfileRepository.isJobPostSaved(jobSeekerId,jobPost.getId());
+        boolean isSaved  = jobPostRepository.isJobPostSaved(jobSeekerId,jobPost.getId());
         JobRelatedDataDTO jobRelatedDataDTO = getJobRelatedDataDTO(jobPost, jobSeekerId);
         JobPostForUserResponse.JobPostForUserResponseBuilder jobPostForUserResponse = JobPostForUserResponse.builder();
 
@@ -221,7 +229,7 @@ public class JobPostMapper {
         jobPostForUserResponse.skills(jobRelatedDataDTO.getSkills());
 
         jobPostForUserResponse.industry(jobRelatedDataDTO.getIndustry());
-//        jobPostForUserResponse.saved(isSaved);
+        jobPostForUserResponse.saved(isSaved);
         jobPostForUserResponse.minSalary( jobPost.getMinSalary() );
         jobPostForUserResponse.maxSalary( jobPost.getMaxSalary() );
         jobPostForUserResponse.currency( jobPost.getCurrency() );

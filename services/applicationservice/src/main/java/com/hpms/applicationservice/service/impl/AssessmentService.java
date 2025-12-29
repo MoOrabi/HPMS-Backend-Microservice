@@ -25,9 +25,6 @@ import java.util.*;
 public class AssessmentService {
 
     @Autowired
-    private PublicJwtTokenUtils tokenUtils;
-
-    @Autowired
     private AssessmentRepository assessmentRepository;
 
     @Autowired
@@ -55,7 +52,7 @@ public class AssessmentService {
 
         ApiResponse<?> getJobApplicationResponse = applicationUtils.getJobApplication(assessmentDTO.getApplicationId());
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         if(!getJobApplicationResponse.isOk()){
             return getJobApplicationResponse;
         }else {
@@ -100,7 +97,7 @@ public class AssessmentService {
     }
 
     public ApiResponse<?> editAssessment(String token, UUID evaluationId, AssessmentDTO assessmentDTO) {
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         ApiResponse<?> getJobApplicationResponse = applicationUtils.getJobApplication(assessmentDTO.getApplicationId());
 
         if(!getJobApplicationResponse.isOk()){
@@ -137,7 +134,7 @@ public class AssessmentService {
     }
 
     public ApiResponse<?> editAssessmentStatus(String token, UUID evaluationId, AssessmentStatus assessmentStatus) {
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Assessment>  optionalAssessment= assessmentRepository.findById(evaluationId);
 
         if(optionalAssessment.isEmpty()){
@@ -178,7 +175,7 @@ public class AssessmentService {
     public ApiResponse<?> editAssessmentResult(String token, UUID evaluationId, String assessmentResult) {
 
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Assessment> optionalAssessment = assessmentRepository.findById(evaluationId);
 
         if(optionalAssessment.isEmpty()){
@@ -212,7 +209,7 @@ public class AssessmentService {
     }
 
     public ApiResponse<?> deleteAssessment(String token, UUID evaluationId) {
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Assessment> optionalAssessment = assessmentRepository.findById(evaluationId);
 
         if(optionalAssessment.isEmpty()){
@@ -245,7 +242,7 @@ public class AssessmentService {
 
     public ApiResponse<?> getAssessmentForEmployer(String token, UUID assessmentId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Assessment> optionalAssessment = assessmentRepository.findById(assessmentId);
 
         if(optionalAssessment.isEmpty()){
@@ -278,7 +275,7 @@ public class AssessmentService {
 
     public ApiResponse<?> getEvaluationsForApplication(String token, UUID appId, EvaluationType evaluationType) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){
@@ -356,7 +353,7 @@ public class AssessmentService {
 
     public ApiResponse<?> markEvaluationsViewed(String token, UUID appId, EvaluationType evaluationType) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){

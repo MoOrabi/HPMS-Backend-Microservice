@@ -2,11 +2,10 @@ package com.hpms.applicationservice.mapper;
 
 import com.hpms.applicationservice.dto.AssessmentDTO;
 import com.hpms.applicationservice.model.Assessment;
-import org.mapstruct.Mapper;
+import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
 
-@Mapper
 public class AssessmentMapper {
 
     public Assessment assessmentDTOToAssessment(AssessmentDTO assessmentDTO) {

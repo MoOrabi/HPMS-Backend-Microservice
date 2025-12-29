@@ -9,7 +9,7 @@ import org.springframework.data.domain.Page;
 @Mapper
 public interface JobSeekerSourceDestinationMapper {
     JobSeekerAllInfoDTO jobSeekerToJobSeekerInfoDTO(JobSeeker js);
-//    JobSeeker jobSeekerInfoDTOToJobSeeker(JobSeekerAllInfoDTO jsAllInfo);
+//    JobSeeker jobSeekerInfoDTOToJobSeeker(JobSeekerAllInfoForAppDTO jsAllInfo);
 
     JobSeekerSimpleDto toSimpleDto(JobSeeker jobSeeker);
 

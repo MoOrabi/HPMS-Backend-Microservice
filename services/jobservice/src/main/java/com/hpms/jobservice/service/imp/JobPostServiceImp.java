@@ -1,6 +1,7 @@
 package com.hpms.jobservice.service.imp;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.commonlib.dto.DeleteJobRelatedEvent;
 import com.hpms.commonlib.dto.PageResponse;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.commonlib.util.PageUtils;
@@ -9,13 +10,16 @@ import com.hpms.jobservice.constants.EmploymentType;
 import com.hpms.jobservice.constants.JobType;
 import com.hpms.jobservice.constants.QuestionType;
 import com.hpms.jobservice.dto.*;
+import com.hpms.jobservice.dto.app.CompanyLocationAndLogoDTO;
 import com.hpms.jobservice.mapper.JobPostMapper;
 import com.hpms.jobservice.mapper.QuestionMapper;
 import com.hpms.jobservice.model.JobPost;
 import com.hpms.jobservice.model.Question;
 import com.hpms.jobservice.repository.JobPostRepository;
 import com.hpms.jobservice.repository.QuestionRepository;
+import com.hpms.jobservice.service.DeleteJobRelatedProducer;
 import com.hpms.jobservice.service.JobPostService;
+import com.hpms.jobservice.service.client.AppServiceClient;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
@@ -26,11 +30,12 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
-import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 @Service
 @AllArgsConstructor
@@ -43,15 +48,16 @@ public class JobPostServiceImp implements JobPostService {
 
     private final QuestionRepository questionRepository;
 
-    private final PublicJwtTokenUtils jwtTokenUtils;
     private final UserServiceClient userServiceClient;
     private final QuestionMapper questionMapper;
 
-    private final KafkaTemplate<String, Object> kafkaTemplate;
+    private final AppServiceClient appServiceClient;
+
+    private final DeleteJobRelatedProducer deleteJobRelatedProducer;
 
     @Override
     public ApiResponse<?> getJobInitInfo(String token, UUID postId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCreatorIdOrCompanyIdOrTeamMember(postId,userId);
         if (jobPostOptional.isEmpty()) {
             return ApiResponse.getDefaultErrorResponse();
@@ -65,7 +71,7 @@ public class JobPostServiceImp implements JobPostService {
     }
 
     public ApiResponse<?> getJobInfoForAnyUser(String token, UUID postId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdForAnyUser(postId);
         if (jobPostOptional.isEmpty()) {
             return ApiResponse.getDefaultErrorResponse();
@@ -87,10 +93,9 @@ public class JobPostServiceImp implements JobPostService {
             return ApiResponse.getDefaultErrorResponse();
         }
         JobPost jobPost = jobPostOptional.get();
-//        JobApplicationNumberPerStatus applicationNumberPerStatus = jobApplicationService.getPostNumbersPerStatus(jobPost.getId());
+        JobApplicationNumberPerStatus applicationNumberPerStatus = appServiceClient.getPostNumbersPerStatus(jobPost.getId());
         JobPostResponse jobPostForUserResponse = jobPostMapper.toEmployerDto(jobPost,
-//                applicationNumberPerStatus
-                null
+                applicationNumberPerStatus
         );
         return ApiResponse.builder()
                 .ok(true)
@@ -120,29 +125,12 @@ public class JobPostServiceImp implements JobPostService {
     }
 
     private JobPostPublicNumbers getApplicationNumbersOfJobPost(JobPost jobPost) {
-//        List<JobApplication> applications = jobPost.getJobApplications();
-//
-//        long applied = applications.size();
-//        long viewed = applications.stream().filter(JobApplication::isViewed).count();
-//        long inConsideration = applications.stream().filter(jobApplication ->
-//                !(new ArrayList<>(Arrays.asList(null, ApplicationStatus.APPLIED, ApplicationStatus.DISQUALIFIED))
-//                        .contains(jobApplication.getStatus()))
-//                ).count();
-//        long rejected = applications.stream().filter(jobApplication ->
-//                jobApplication.getStatus().equals(ApplicationStatus.DISQUALIFIED))
-//                .count();
-//        return JobPostPublicNumbers.builder()
-//                .applied(applied)
-//                .viewed(viewed)
-//                .inConsideration(inConsideration)
-//                .rejected(rejected)
-//                .build();
-        return null;
+        return appServiceClient.getPostPublicNumbers(jobPost.getId());
     }
 
     @Override
     public ApiResponse<?> updateInitJobInfo(String token, JobPostRequest jobPostRequest) {
-        UUID companyId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCreatorIdOrCompanyIdOrTeamMember(jobPostRequest.getId(),companyId);
         if (jobPostOptional.isEmpty()) {
             return ApiResponse.getDefaultErrorResponse();
@@ -162,7 +150,7 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> getJobAdvancedSetting(String token, UUID postId) {
-        UUID companyId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCreatorIdOrCompanyIdOrTeamMember(postId,companyId);
         if (jobPostOptional.isEmpty()) {
             return ApiResponse.getDefaultErrorResponse();
@@ -177,7 +165,7 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> deleteNewJobPost(String token, UUID postId) {
-        UUID companyIdOrCreatorId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyIdOrCreatorId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCreatorIdOrCompanyIdOrTeamMember(postId,companyIdOrCreatorId);
 
         if (jobPostOptional.isEmpty()) {
@@ -194,8 +182,9 @@ public class JobPostServiceImp implements JobPostService {
     }
 
     @Override
+    @Transactional
     public ApiResponse<?> deleteJobPost(String token, UUID postId) {
-        UUID companyIdOrAdminId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyIdOrAdminId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCompanyIdOrAdminIdNotDeleted(postId,companyIdOrAdminId);
 
         if (jobPostOptional.isEmpty()) {
@@ -204,6 +193,9 @@ public class JobPostServiceImp implements JobPostService {
         JobPost jobPost =  jobPostOptional.get();
         jobPost.setDeleted(true);
         jobPostRepository.save(jobPost);
+        deleteJobRelatedProducer.sendDeleteEvent(
+                new DeleteJobRelatedEvent(postId)
+        );
 
         return ApiResponse.builder()
                 .ok(true)
@@ -214,7 +206,7 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> closeJobPost(String token, UUID postId) {
-        UUID companyIdOrAdminId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyIdOrAdminId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCompanyIdOrAdminIdAndOpen(postId,companyIdOrAdminId);
 
         if (jobPostOptional.isEmpty()) {
@@ -231,64 +223,175 @@ public class JobPostServiceImp implements JobPostService {
                 .build();
     }
 
-//    @Override
-//    public ApiResponse<?> getApplicationsJobPostsForJobSeeker(String token) {
-//        ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-//        User user = null;
-//
-//        if (!isThereUserFromToken.isOk()) {
-//            return isThereUserFromToken;
-//        } else {
-//            user = (User) isThereUserFromToken.getBody();
-//            if(!user.getRole().equals(RoleEnum.ROLE_JOBSEEKER)){
-//                return ApiResponse.builder()
-//                        .ok(false)
-//                        .status(HttpStatus.UNAUTHORIZED.value())
-//                        .message("You have no authority to access this")
-//                        .build();
-//            }else {
-//                List<JobApplication> jobApplications = jobApplicationRepository.findByJobSeekerId(user.getId());
-//                List<JobPostForApplication> jobPosts = new ArrayList<>();
-//                for (JobApplication app :
-//                        jobApplications) {
-//                    JobPost jobPost = app.getJobPost();
-//                    Location companyLocation = jobPost.getCompany().getMainBranchLocation();
-//                    JobPostPublicNumbers publicNumbers = getApplicationNumbersOfJobPost(jobPost);
-//                    JobPostForApplication jobPostForApplication = JobPostForApplication
-//                            .builder()
-//                            .applicationId(app.getId())
-//                            .applicationStatus(app.getStatus())
-//                            .jobTitle(jobPost.getJobTitle())
-//                            .jobId(jobPost.getId())
-//                            .jobType(jobPost.getJobType())
-//                            .employmentType(jobPost.getEmploymentType())
-//                            .companyLocation(companyLocation.getCity() + " - " + companyLocation.getCountry())
-//                            .companyLogo(jobPost.getCompany().getLogo())
-//                            .open(jobPost.isOpen())
-//                            .publicNumbers(publicNumbers)
-//                            .newActionsNumber(getApplicationNewActionsNumber(app))
-//                            .deleted(jobPost.isDeleted())
-//                            .appUpdatedAt(app.getUpdatedAt())
-//                            .build();
-//                    jobPosts.add(jobPostForApplication);
-//                }
-//                return ApiResponse.builder()
-//                        .ok(true)
-//                        .status(HttpStatus.ACCEPTED.value())
-//                        .message("Job posts data returned")
-//                        .body(jobPosts)
-//                        .build();
-//
-//            }
-//        }
-//
-//    }
-//
+    @Override
+    public ApiResponse<?> getApplicationsJobPostsForJobSeeker(String token) {
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
+        try {
+            // Step 1: Get applications from application service
+            log.info("Fetching applications for user: {}", userId);
+            List<JobPostForApplication> applications = appServiceClient.getJobPostsForApplications(userId);
+
+            if (applications == null || applications.isEmpty()) {
+                log.info("No applications found for user: {}", userId);
+                return ApiResponse.<List<JobPostForApplication>>builder()
+                        .ok(true)
+                        .status(HttpStatus.OK.value())
+                        .message("No applications found")
+                        .body(Collections.emptyList())
+                        .build();
+            }
+
+            // Step 2: Extract job IDs
+            List<UUID> jobIds = applications.stream()
+                    .map(JobPostForApplication::getJobId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+
+            Map<UUID, JobPost> jobPostsMap = fetchJobPosts(jobIds);
+
+            if (jobPostsMap.isEmpty()) {
+                log.warn("No job posts found for applications");
+                return ApiResponse.<List<JobPostForApplication>>builder()
+                        .ok(true)
+                        .status(HttpStatus.OK.value())
+                        .message("No applications found")
+                        .body(Collections.emptyList())
+                        .build();
+            }
+
+            // Step 3: Extract company IDs and fetch company data
+            List<UUID> companyIds = jobPostsMap.values().stream()
+                    .map(JobPost::getCompanyId)
+                    .filter(Objects::nonNull)
+                    .distinct()
+                    .toList();
+            Map<UUID, CompanyLocationAndLogoDTO> companyDataMap = fetchCompanyData(companyIds);
+
+            // Step 4: Enrich applications with job and company data
+            List<JobPostForApplication> enrichedApplications = enrichApplications(
+                    applications,
+                    jobPostsMap,
+                    companyDataMap
+            );
+
+            log.info("Successfully enriched {} applications for user: {}", enrichedApplications.size(), userId);
+
+            return ApiResponse.<List<JobPostForApplication>>builder()
+                    .ok(true)
+                    .status(HttpStatus.OK.value())
+                    .message("Job posts data returned")
+                    .body(enrichedApplications)
+                    .build();
+
+        } catch (ServiceCommunicationException e) {
+            log.error("Error fetching job posts for applications for user: {}", userId, e);
+            throw new ServiceCommunicationException("application service or user service ","Failed to fetch job post applications", e);
+        }
+    }
+
+    // Helper: Fetch job posts and convert to map for O(1) lookup
+    private Map<UUID, JobPost> fetchJobPosts(List<UUID> jobIds) {
+        if (jobIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            log.debug("Fetching {} job posts from repository", jobIds.size());
+            List<JobPost> jobPosts = jobPostRepository.findAllById(jobIds);
+
+            return jobPosts.stream()
+                    .collect(Collectors.toMap(JobPost::getId, Function.identity()));
+        } catch (ServiceCommunicationException e) {
+            log.error("Error fetching job posts: {}", jobIds, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    // Helper: Fetch company data and convert to map for O(1) lookup
+    private Map<UUID, CompanyLocationAndLogoDTO> fetchCompanyData(List<UUID> companyIds) {
+        if (companyIds.isEmpty()) {
+            return Collections.emptyMap();
+        }
+
+        try {
+            log.debug("Fetching company data for {} companies", companyIds.size());
+            List<CompanyLocationAndLogoDTO> companyData =
+                    userServiceClient.getCompanyLocationAndLogos(companyIds);
+
+            return companyData.stream()
+                    .collect(Collectors.toMap(CompanyLocationAndLogoDTO::getId, Function.identity()));
+        } catch (ServiceCommunicationException e) {
+            log.error("Error fetching company data from user service for IDs: {}", companyIds, e);
+            return Collections.emptyMap();
+        }
+    }
+
+    private List<JobPostForApplication> enrichApplications(
+            List<JobPostForApplication> applications,
+            Map<UUID, JobPost> jobPostsMap,
+            Map<UUID, CompanyLocationAndLogoDTO> companyDataMap) {
+
+        return applications.stream()
+                .map(app -> enrichSingleApplication(app, jobPostsMap, companyDataMap))
+                .filter(Objects::nonNull)
+                .toList();
+    }
+
+    // Helper: Enrich single application with job and company data
+    private JobPostForApplication enrichSingleApplication(
+            JobPostForApplication application,
+            Map<UUID, JobPost> jobPostsMap,
+            Map<UUID, CompanyLocationAndLogoDTO> companyDataMap) {
+
+        UUID jobId = application.getJobId();
+        if (jobId == null) {
+            log.warn("Application has null jobId, skipping");
+            return null;
+        }
+
+        JobPost jobPost = jobPostsMap.get(jobId);
+        if (jobPost == null) {
+            log.warn("JobPost not found for ID: {}, skipping application", jobId);
+            return null;
+        }
+
+        // Enrich with job data
+        application.setJobTitle(jobPost.getJobTitle());
+        application.setJobId(jobPost.getId());
+        application.setJobType(jobPost.getJobType());
+        application.setEmploymentType(jobPost.getEmploymentType());
+        application.setOpen(jobPost.isOpen());
+        application.setDeleted(jobPost.isDeleted());
+
+        // Enrich with company data (graceful if unavailable)
+        CompanyLocationAndLogoDTO companyData = companyDataMap.get(jobPost.getCompanyId());
+        if (companyData != null) {
+            application.setCompanyLocation(companyData.getLocation());
+            application.setCompanyLogo(companyData.getLogo());
+        } else {
+            log.debug("Company data not found for company ID: {}", jobPost.getCompanyId());
+            application.setCompanyLocation(null);
+            application.setCompanyLogo(null);
+        }
+
+        // Enrich with public numbers
+        try {
+            JobPostPublicNumbers publicNumbers = getApplicationNumbersOfJobPost(jobPost);
+            application.setPublicNumbers(publicNumbers);
+        } catch (Exception e) {
+            log.error("Error calculating public numbers for job: {}", jobId, e);
+            application.setPublicNumbers(JobPostPublicNumbers.builder().build());
+        }
+
+        return application;
+    }
+
 
     @Transactional
     @Modifying
     public ApiResponse<?> toggleSavedJob(String token, UUID id) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.findById(id);
         if(jobPostOptional.isEmpty()) return ApiResponse.getDefaultErrorResponse();
         JobPost jobPost = jobPostOptional.get();
@@ -302,26 +405,6 @@ public class JobPostServiceImp implements JobPostService {
 
         return ApiResponse.getDefaultSuccessResponse();
     }
-
-//    private int getApplicationNewActionsNumber (JobApplication application) {
-//
-//        int evaluationsNumber = 0;
-//        if(application.getEvaluations() != null) {
-//            evaluationsNumber = application.getEvaluations().stream().filter((app) -> {
-//                return !app.isViewed();
-//            }).toList().size();
-//        }
-//        int offerNumbers = 0;
-//        int offerCommentsNumber = 0;
-//        if(application.getOffer() != null){
-//            offerNumbers = (application.getOffer().isViewed())? 0: 1;
-//            offerCommentsNumber = application.getOffer().getComments().stream().filter((comment) -> {
-//                return !comment.isViewed();
-//            }).toList().size();
-//        }
-//
-//        return evaluationsNumber + offerNumbers + offerCommentsNumber;
-//    }
 
     @Override
     public ApiResponse<?> getPublishedJobs(String token, UUID companyId, int page , int size) {
@@ -339,7 +422,7 @@ public class JobPostServiceImp implements JobPostService {
     }
 
     public ApiResponse<?> saveJobPost(String token, UUID postId) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
 
         Optional<JobPost> jobPostOptional = jobPostRepository.findById(postId);
         if(jobPostOptional.isEmpty()){
@@ -359,7 +442,7 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> getSavedJobs(String token,int page , int size) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
 
         Pageable pageable = PageRequest.of(page, size);
         Page<JobPost> jobPostPage = jobPostRepository.findSavedJobsByJobSeekerId(userId,pageable);
@@ -393,15 +476,14 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> createInitJobInfo(String token, JobPostRequest jobPostRequest) {
-        UUID userId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID userId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
 
         JobPost jobPost = createJob(jobPostRequest);
-        CompanyAndRecruiterIds companyAndRecruiterIds = null;
+        CompanyAndRecruiterIds companyAndRecruiterIds = CompanyAndRecruiterIds.builder().build();
         try {
             companyAndRecruiterIds = userServiceClient.getCompanyAndRecruiterIds(userId);
         } catch (ServiceCommunicationException e) {
             log.warn("User service unavailable for user {}", userId);
-            companyAndRecruiterIds = CompanyAndRecruiterIds.builder().build();
         }
 
         jobPost.setCompanyId(companyAndRecruiterIds.getCompanyId());
@@ -420,7 +502,7 @@ public class JobPostServiceImp implements JobPostService {
     @Override
     @Transactional
     public ApiResponse<?> publishOrSaveJob(String token, JobSettingDto jobSettingDto) {
-        UUID companyId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Optional<JobPost> jobPostOptional = jobPostRepository.getJobPostByIdAndCreatorIdOrCompanyIdOrTeamMember(jobSettingDto.getJobPostId(),companyId);
 
         if (jobPostOptional.isEmpty()) {
@@ -509,14 +591,13 @@ public class JobPostServiceImp implements JobPostService {
     }
 
     public ApiResponse<?> getCompanyJobs(String token , int page, int size) {
-        UUID companyId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         Pageable pageable = PageRequest.of(page, size, Sort.by(
                 Sort.Order.asc("draft"),
                 Sort.Order.asc("createdOn"),
                 Sort.Order.asc("updatedOn")
         ));
         Page<JobPost> allPosts = jobPostRepository.getAllCompanyJobPosts(companyId,pageable);
-        List<UUID> jobIds = allPosts.stream().map(JobPost::getId).toList();
 
         Page<JobPostResponse> mappedPosts = mapJobPosts(allPosts);
         return ApiResponse.builder()
@@ -528,7 +609,7 @@ public class JobPostServiceImp implements JobPostService {
 
     @Override
     public ApiResponse<?> getNumberOfActiveJobPosts(String token) {
-        UUID companyId = UUID.fromString(jwtTokenUtils.extractId(token.substring(7)));
+        UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
         int count =  jobPostRepository.countActiveJobsForCompany(companyId);
 
         return ApiResponse.builder()
@@ -543,8 +624,7 @@ public class JobPostServiceImp implements JobPostService {
     private Page<JobPostResponse> mapJobPosts(Page<JobPost> jobPostsPage) {
         return jobPostsPage
                 .map(jobPost -> jobPostMapper.toEmployerDto(jobPost,
-//                        jobApplicationService.getPostNumbersPerStatus(jobPost.getId())
-                        null
+                        appServiceClient.getPostNumbersPerStatus(jobPost.getId())
                 ));
     }
 

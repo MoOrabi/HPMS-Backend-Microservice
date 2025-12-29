@@ -22,17 +22,17 @@ public interface JobPostService {
     ApiResponse<?> getJobAdvancedSetting(String token, UUID postId);
     ApiResponse<?> deleteNewJobPost(String token, UUID postId);
     ApiResponse<?> getPublishedJobs(String token, UUID companyId, int page, int size);
-//    ApiResponse<?> saveJobPost(String token, UUID postId);
+    ApiResponse<?> saveJobPost(String token, UUID postId);
     ApiResponse<?> getSavedJobs(String token,int page ,int size);
 
     ApiResponse<?> deleteJobPost(String token, UUID postId);
 
     ApiResponse<?> closeJobPost(String token, UUID postId);
 
-//    ApiResponse<?> getApplicationsJobPostsForJobSeeker(String token);
+    ApiResponse<?> getApplicationsJobPostsForJobSeeker(String token);
 
 
-//    ApiResponse<?> toggleSavedJob(String token, UUID id);
+    ApiResponse<?> toggleSavedJob(String token, UUID id);
 
     ApiResponse<?> getJobInfoForAppPage(String token, UUID postId);
 }

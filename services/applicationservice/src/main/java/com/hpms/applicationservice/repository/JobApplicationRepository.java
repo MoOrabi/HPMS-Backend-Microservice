@@ -2,7 +2,9 @@ package com.hpms.applicationservice.repository;
 
 import com.hpms.applicationservice.constants.ApplicationStatus;
 import com.hpms.applicationservice.model.JobApplication;
+import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
@@ -27,4 +29,12 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     List<JobApplication> findByJobPostId(UUID jobId);
 
     List<JobApplication> findByJobSeekerId(UUID jobId);
+
+    @Modifying
+    @Transactional
+    void deleteByJobPostId(UUID jobId);
+
+    @Modifying
+    @Transactional
+    void deleteByJobSeekerId(UUID userId);
 }

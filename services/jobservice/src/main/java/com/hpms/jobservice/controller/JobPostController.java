@@ -122,9 +122,10 @@ public class JobPostController {
         return  this.jobPostService.deleteJobPost(token,postId);
     }
 
-//    @GetMapping("/apps-posts")
-//    public ApiResponse<?> getApplicationsJobPostsForJobSeeker(@Valid @RequestHeader("Authorization") String token) {
-//        return jobPostService.getApplicationsJobPostsForJobSeeker(token);
-//    }
+    // only for job seekers @PreAuthorize
+    @GetMapping("/apps-posts")
+    public ApiResponse<?> getApplicationsJobPostsForJobSeeker(@Valid @RequestHeader("Authorization") String token) {
+        return jobPostService.getApplicationsJobPostsForJobSeeker(token);
+    }
 
 }

@@ -35,9 +35,6 @@ import java.util.*;
 public class OfferService {
 
     @Autowired
-    private PublicJwtTokenUtils tokenUtils;
-
-    @Autowired
     private OfferRepository offerRepository;
 
     @Autowired
@@ -72,7 +69,7 @@ public class OfferService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
             if (applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication)){
                 if(jobApplication.getOffer()!=null){
                     return ApiResponse.builder()
@@ -136,7 +133,7 @@ public class OfferService {
             return getJobApplicationResponse;
         }else {
             JobApplication jobApplication = (JobApplication) getJobApplicationResponse.getBody();
-            UUID userId = tokenUtils.extractUUID(token.substring(7));
+            UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
             if (applicationUtils.checkEmployerIsConcernedWithApplication(userId, jobApplication)){
                 Optional<Offer> optionalOffer = offerRepository.findById(offerId);
 
@@ -168,7 +165,7 @@ public class OfferService {
     public ApiResponse<?> editOfferStatus(String token, UUID offerId, OfferStatus offerStatus) {
 
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
 Optional<Offer> optionalOffer = offerRepository.findById(offerId);
             if(optionalOffer.isEmpty()) {
                 return ApiResponse.builder()
@@ -204,7 +201,7 @@ Optional<Offer> optionalOffer = offerRepository.findById(offerId);
     public ApiResponse<?> deleteOffer(String token, UUID offerId) {
 
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Offer> optionalOffer = offerRepository.findById(offerId);
 
         if(optionalOffer.isEmpty()){
@@ -238,7 +235,7 @@ Optional<Offer> optionalOffer = offerRepository.findById(offerId);
 
     public ApiResponse<?> getOfferForApplication(String token, UUID applicationId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
 Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(applicationId);
 
             if(optionalApplication.isEmpty()){
@@ -303,7 +300,7 @@ Optional<JobApplication> optionalApplication = jobApplicationRepository.findById
 
     public ApiResponse<?> addOfferComment(String token, OfferCommentDTO offerCommentDTO) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<Offer> optionalOffer = offerRepository.findById(offerCommentDTO.getOfferId());
         if(optionalOffer.isEmpty()){
             return ApiResponse.builder()
@@ -342,7 +339,7 @@ Optional<JobApplication> optionalApplication = jobApplicationRepository.findById
 
     public ApiResponse<?> markOfferAndOfferCommentsViewed(String token, UUID appId) {
 
-        UUID userId = tokenUtils.extractUUID(token.substring(7));
+        UUID userId = PublicJwtTokenUtils.extractUUID(token.substring(7));
         Optional<JobApplication> optionalApplication = jobApplicationRepository.findById(appId);
 
         if(optionalApplication.isEmpty()){

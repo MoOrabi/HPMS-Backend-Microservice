@@ -44,6 +44,7 @@ kafka:
   topics:
     email-events: email-events-topic
     delete-user-related-events: delete-user-related-topic
+    delete-job-related-events: delete-job-related-topic
 
 eureka:
   client:
