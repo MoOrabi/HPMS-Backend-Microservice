@@ -4,7 +4,7 @@ import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.userservice.dto.company.CompanyAboutInfoRequest;
 import com.hpms.userservice.dto.company.CompanyBasicInfoRequest;
 import com.hpms.userservice.dto.company.CompanySubscriptionChoices;
-import com.hpms.userservice.model.Benefit;
+import com.hpms.userservice.model.shared.Benefit;
 import com.hpms.userservice.service.company.CompanyProfileServices;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;

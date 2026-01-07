@@ -1,21 +1,20 @@
-package com.hpms.userservice.model;
+package com.hpms.userservice.model.shared;
 
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
 
 @Entity
-@Table(name = "benefits")
+@Table(name = "social_media")
 @Getter
 @Setter
-public class Benefit {
+public class SocialIconInfo {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private long id;
+    private Long id;
 
-    @Column(unique = true)
-    private String benefit;
+    private String platform;
 
     private String icon;
 

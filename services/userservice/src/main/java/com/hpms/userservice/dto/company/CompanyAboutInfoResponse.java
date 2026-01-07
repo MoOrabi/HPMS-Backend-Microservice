@@ -1,6 +1,6 @@
 package com.hpms.userservice.dto.company;
 
-import com.hpms.userservice.model.Benefit;
+import com.hpms.userservice.model.shared.Benefit;
 import com.hpms.userservice.model.UserSocialLink;
 import lombok.*;
 

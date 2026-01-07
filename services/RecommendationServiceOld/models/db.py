@@ -6,13 +6,19 @@ import uuid
 import javaobj as javaobj
 
 
-user, password, host, database = 'root', 'root', 'localhost', 'hirexhire'
+user, password, host, database = 'root', 'root', 'localhost', 'hirexhireUser'
+jobDatabase = 'hirexhireJob'
 engine = create_engine(url=f'mysql+pymysql://{user}:{password}@{host}/{database}?charset=utf8')
+jobEngine = create_engine(url=f'mysql+pymysql://{user}:{password}@{host}/{jobDatabase}?charset=utf8')
 
 connection = engine.connect()
+jobConnection = jobEngine.connect()
 
 Session = sessionmaker(bind=engine)
 session = Session()
+
+JobSession = sessionmaker(bind=jobEngine)
+jobSession = JobSession()
 
 
 # Function to convert binary UUID to string
@@ -22,7 +28,7 @@ def convert_uuid_binary_to_str(uuid_binary):
 
 def get_job_posts():
     query = " * from job_post"
-    df = pd.read_sql(session.query(text(query)).statement, session.bind)
+    df = pd.read_sql(jobSession.query(text(query)).statement, session.bind)
     if len(df.values) == 0:
         return []
     df = job_post_df_ready_to_json(df)
@@ -40,16 +46,16 @@ def job_post_df_ready_to_json(df):
 def get_job_posts_for_company(company_id):
     query = (" * from job_post jp join job_seeker_job_post_score sc on jp.id = sc.job_post_id"
              " where company_id = UUID_TO_BIN('") + company_id + "')"
-    df = pd.read_sql(session.query(text(query)).statement, session.bind)
+    df = pd.read_sql(jobSession.query(text(query)).statement, session.bind)
 
     return df['id']
 
 
 def get_job_posts_for_recruiter(recruiter_id):
     query = (" distinct id from job_post jp join job_seeker_job_post_score sc on jp.id = sc.job_post_id "
-             "join recruiters_team rt on jp.id = rt.job_post_id "
-             "where UUID_TO_BIN('") + recruiter_id + "') = rt.recruiter_id"
-    df = pd.read_sql(session.query(text(query)).statement, session.bind)
+             "join job_recruiters jr on jp.id = jr.job_id "
+             "where UUID_TO_BIN('") + recruiter_id + "') = jr.recruiter_id"
+    df = pd.read_sql(jobSession.query(text(query)).statement, session.bind)
     return df['id']
 
 

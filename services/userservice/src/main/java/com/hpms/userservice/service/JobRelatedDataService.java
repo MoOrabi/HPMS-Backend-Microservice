@@ -1,12 +1,13 @@
 package com.hpms.userservice.service;
 
 import com.hpms.commonlib.handler.BadRequestException;
+import com.hpms.userservice.repository.shared.IndustryRepository;
 import com.hpms.userservice.service.client.JobServiceClient;
 import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.dto.*;
 import com.hpms.userservice.mapper.*;
 import com.hpms.userservice.model.Company;
-import com.hpms.userservice.model.Industry;
+import com.hpms.userservice.model.shared.Industry;
 import com.hpms.userservice.model.Recruiter;
 import com.hpms.userservice.model.User;
 import com.hpms.userservice.model.shared.JobName;

@@ -4,6 +4,7 @@ import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Value;
 
 import javax.crypto.SecretKey;
@@ -12,10 +13,22 @@ import java.util.function.Function;
 
 public class PublicJwtTokenUtils {
 
-    @Value("${jwt.secret}")
-    private static String jwtSecret;
+//    @Value("${jwt.secret}")
+//    private String jwtSecreta;
 
     private static SecretKey getSignInKey() {
+        String jwtSecret = "404E635266556A586E3272357538782F413F4428472B4B6250645367566B5970";
+                System.getenv("JWT_SECRET");
+
+        // Fallback to system property if env var not found
+        if (jwtSecret == null) {
+            jwtSecret = System.getProperty("jwt.secret");
+        }
+
+        // Last resort: throw exception
+        if (jwtSecret == null || jwtSecret.isEmpty()) {
+            throw new IllegalStateException("JWT secret not configured. Set JWT_SECRET environment variable or jwt.secret system property.");
+        }
         byte[] keyBytes = Decoders.BASE64.decode(jwtSecret);
         return Keys.hmacShaKeyFor(keyBytes);
     }

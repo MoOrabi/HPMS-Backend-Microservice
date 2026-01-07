@@ -51,6 +51,10 @@ public class JobSeekerProfileService {
     @Autowired
     JobSeekerSourceDestinationMapper jobSeekerSourceDestinationMapper;
 
+    @Autowired(required = false)
+    private com.hpms.userservice.event.JobSeekerEventPublisher eventPublisher;
+
+    private static final long MIN_UPDATE_INTERVAL_HOURS = 1;
 
     public ApiResponse<?> saveProfilePhoto(String token, MultipartFile profileFile) throws Exception {
         return frequentlyUsed.addFileToUser(token, profileFile, "js-profile", 2 * 1048,
@@ -311,8 +315,31 @@ public class JobSeekerProfileService {
             jobSeeker = (JobSeeker) isThereUserFromToken.getBody();
         }
 
+        // Check if skills are being updated
+        boolean skillsChanged = !professionalInfoDTO.getSkills().equals(jobSeeker.getSkills());
+
+        // Rate limiting for skills update
+        if (skillsChanged && jobSeeker.getLastSkillsUpdate() != null) {
+            java.time.Duration duration = java.time.Duration.between(
+                    jobSeeker.getLastSkillsUpdate(),
+                    java.time.LocalDateTime.now()
+            );
+            if (duration.toHours() < MIN_UPDATE_INTERVAL_HOURS) {
+                return ApiResponse.builder()
+                        .ok(false)
+                        .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                        .message("You can only update your skills once per hour. Please try again later.")
+                        .build();
+            }
+        }
+
         jobSeeker.setYearsOfExperience(professionalInfoDTO.getYearsOfExperience());
         jobSeeker.setSkills(professionalInfoDTO.getSkills());
+
+        // Update timestamp if skills changed
+        if (skillsChanged) {
+            jobSeeker.setLastSkillsUpdate(java.time.LocalDateTime.now());
+        }
 
         List<Skill> availableSkills = skillRepository.findAll();
         var skills = professionalInfoDTO.getSkills();
@@ -320,6 +347,13 @@ public class JobSeekerProfileService {
             if (!availableSkills.contains(new Skill(skill))) {
                 skillRepository.save(new Skill(skill));
             }
+        }
+
+        jobSeekerProfileRepository.save(jobSeeker);
+
+        // Publish event to recommendation service if skills changed
+        if (skillsChanged && eventPublisher != null) {
+            eventPublisher.publishSkillsUpdated(jobSeeker, jobSeeker.getLastSkillsUpdate());
         }
 
         return ApiResponse.builder()

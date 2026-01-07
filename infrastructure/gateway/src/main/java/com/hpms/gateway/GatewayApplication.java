@@ -23,7 +23,7 @@ public class GatewayApplication {
 				.route("jobs_path", r -> r.path("/api/jobs/**")
 						.uri("lb://JOB-SERVICE"))
 				.route("applications_path", r -> r.path("/api/apps/**")
-						.uri("lb://APPLICATION-SERVICE"))
+						.uri("lb://APPLICATIONS-SERVICE"))
 //				.route("host_route", r -> r.host("*.myhost.org")
 //						.uri("https://httpbin.org"))
 //				.route("rewrite_route", r -> r.host("*.rewrite.org")

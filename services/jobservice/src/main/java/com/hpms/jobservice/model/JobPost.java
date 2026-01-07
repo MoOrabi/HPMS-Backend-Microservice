@@ -119,4 +119,8 @@ public class JobPost {
 
     private boolean deleted;
 
+    private boolean remote = false;
+
+    private LocalDateTime lastJobUpdate;
+
 }

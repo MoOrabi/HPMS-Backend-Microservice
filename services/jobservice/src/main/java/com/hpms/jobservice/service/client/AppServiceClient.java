@@ -10,7 +10,7 @@ import com.hpms.jobservice.dto.JobPostForApplication;
 import java.util.List;
 import java.util.UUID;
 
-@HttpExchange(url = "http://application-service/api/apps/jobs")
+@HttpExchange(url = "http://applications-service/api/apps/jobs")
 public interface AppServiceClient {
 
     @GetExchange("/numbers-per-status/{post-id}")

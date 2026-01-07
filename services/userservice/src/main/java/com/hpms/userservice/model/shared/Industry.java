@@ -1,4 +1,4 @@
-package com.hpms.userservice.model;
+package com.hpms.userservice.model.shared;
 
 
 import jakarta.persistence.*;

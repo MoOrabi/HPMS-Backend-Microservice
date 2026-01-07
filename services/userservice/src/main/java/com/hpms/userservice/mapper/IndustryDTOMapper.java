@@ -1,8 +1,7 @@
 package com.hpms.userservice.mapper;
 
 import com.hpms.userservice.dto.IndustryDTO;
-import com.hpms.userservice.model.Industry;
-import org.springframework.context.annotation.Configuration;
+import com.hpms.userservice.model.shared.Industry;
 import org.springframework.stereotype.Component;
 
 import java.util.function.Function;

@@ -2,6 +2,8 @@ package com.hpms.userservice.service.company;
 
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
+import com.hpms.userservice.model.shared.Benefit;
+import com.hpms.userservice.model.shared.SocialIconInfo;
 import com.hpms.userservice.service.client.JobServiceClient;
 import com.hpms.userservice.dto.JobPostDto;
 import com.hpms.userservice.dto.company.*;
@@ -18,7 +20,6 @@ import com.hpms.userservice.utils.FrequentlyUsed;
 import com.hpms.userservice.utils.JwtTokenUtils;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;

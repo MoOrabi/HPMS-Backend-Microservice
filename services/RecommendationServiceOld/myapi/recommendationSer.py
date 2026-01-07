@@ -10,7 +10,8 @@ from sqlalchemy import text
 
 from models.JobSeekerCumScoreTemp import JobSeekerJobCumScoreTemp
 from models.JobSeekerJobPostScore import JobSeekerJobPostScore
-from models.db import (get_job_seekers, get_job_posts, get_job_posts_for_company, get_job_posts_for_recruiter, session,
+from models.db import (get_job_seekers, get_job_posts, get_job_posts_for_company, get_job_posts_for_recruiter,
+                       session, jobSession,
                        convert_uuid_binary_to_str)
 
 apis = Blueprint('apis', __name__)
@@ -43,7 +44,7 @@ cosine_sim = None
 def train_and_store():
     similarity_details = []
     if len(job_posts_df) == 0 or len(job_seekers_df) == 0:
-        return []
+        return
     job_posts_df['combined'] = job_posts_df.apply(combine_job_post_fields, axis=1)
     job_seekers_df['combined'] = job_seekers_df.apply(combine_job_seeker_fields, axis=1)
 
@@ -63,12 +64,12 @@ def train_and_store():
             job_post_id = job_posts_df.iloc[post_idx]['id']
             score = cosine_sim[seeker_idx][post_idx]
             similarity_details.append((job_seeker_id, job_post_id, score))
-    session.query(JobSeekerJobPostScore).delete()
+    jobSession.query(JobSeekerJobPostScore).delete()
     for row in similarity_details:
         instance = JobSeekerJobPostScore(job_seeker_id=uuid.UUID(row[0]).bytes, job_post_id=uuid.UUID(row[1]).bytes,
                                          score=row[2])
-        session.add(instance)
-    session.commit()
+        jobSession.add(instance)
+    jobSession.commit()
 
 
 def get_job_recommendations(job_seeker_id, page_number, page_size):
@@ -85,7 +86,7 @@ def get_job_recommendations(job_seeker_id, page_number, page_size):
              " where sc.job_seeker_id = UUID_TO_BIN('" + job_seeker_id + "') order by sc.score desc,"
                                                                          " jn.name, c.name"
              " limit " + str(page_size) + " offset " + str((page_number - 1) * page_size))
-    df = pd.read_sql(session.query(text(query)).statement, session.bind)
+    df = pd.read_sql(jobSession.query(text(query)).statement, jobSession.bind)
     df['id'] = df['id'].apply(convert_uuid_binary_to_str)
     return df.to_json(orient="records")
 

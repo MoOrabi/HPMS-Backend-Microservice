@@ -5,16 +5,14 @@ import com.hpms.userservice.constants.CareerLevel;
 import com.hpms.userservice.model.Education;
 import com.hpms.userservice.model.User;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import lombok.experimental.SuperBuilder;
 import org.hibernate.annotations.DynamicInsert;
 import org.hibernate.annotations.DynamicUpdate;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
 import java.util.UUID;
@@ -115,6 +113,9 @@ public class JobSeeker extends User {
     private String CV;
 
     private int complete ;
+
+    private LocalDateTime lastSkillsUpdate;
+    private LocalDateTime lastProfileUpdate;
 
 //    @OneToMany(mappedBy = "jobSeeker" , cascade = {
 //            CascadeType.DETACH,CascadeType.MERGE,

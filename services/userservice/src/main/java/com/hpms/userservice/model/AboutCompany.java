@@ -1,5 +1,6 @@
 package com.hpms.userservice.model;
 
+import com.hpms.userservice.model.shared.Benefit;
 import jakarta.persistence.*;
 import lombok.*;
 import org.hibernate.annotations.DynamicInsert;

@@ -1,5 +1,6 @@
 package com.hpms.userservice.model;
 
+import com.hpms.userservice.model.shared.SocialIconInfo;
 import jakarta.persistence.*;
 import lombok.*;
 

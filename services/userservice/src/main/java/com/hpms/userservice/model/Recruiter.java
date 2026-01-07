@@ -5,9 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.hpms.userservice.constants.AuthProviders;
 import com.hpms.commonlib.constants.RoleEnum;
 import jakarta.persistence.*;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
+import lombok.experimental.SuperBuilder;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDateTime;
@@ -19,6 +18,8 @@ import static com.hpms.userservice.utils.AppConstants.LOCAL_PROVIDER_ID;
 @Getter
 @Setter
 @NoArgsConstructor
+@AllArgsConstructor
+@SuperBuilder
 public class Recruiter extends User {
 
     private String firstName;

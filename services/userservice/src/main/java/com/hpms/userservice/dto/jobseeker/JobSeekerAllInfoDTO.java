@@ -6,10 +6,7 @@ import com.hpms.userservice.model.jobseeker.Certificate;
 import com.hpms.userservice.model.jobseeker.JobExperience;
 import com.hpms.userservice.model.jobseeker.JobSeekerLocation;
 import com.hpms.userservice.model.jobseeker.Language;
-import lombok.AllArgsConstructor;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
 import java.time.LocalDate;
@@ -20,6 +17,7 @@ import java.util.Set;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class JobSeekerAllInfoDTO {
     private String firstName;
 
