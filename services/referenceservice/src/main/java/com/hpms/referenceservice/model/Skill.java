@@ -1,4 +1,4 @@
-package com.hpms.userservice.model.shared;
+package com.hpms.referenceservice.model;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;

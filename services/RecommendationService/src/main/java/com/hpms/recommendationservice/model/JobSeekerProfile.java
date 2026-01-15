@@ -25,6 +25,7 @@ public class JobSeekerProfile {
 
     private String firstName;
     private String lastName;
+    private String photo;
     private String careerLevel;
     private String jobTitle;
 
@@ -42,22 +43,17 @@ public class JobSeekerProfile {
 
     private String lastJobTitle;
     private String lastJobOrganizationName;
-    private int lastJobStartedAt;
-    private int lastJobEndedAt;
+    private String lastJobStartedAt;
+    private String lastJobEndedAt;
 
     @ElementCollection
     @CollectionTable(name = "jobseeker_job_types", joinColumns = @JoinColumn(name = "jobseeker_id"))
     @Column(name = "job_type")
     private Set<String> jobTypesInterestedIn = new HashSet<>();
 
-    private String educationLevel;
     private String city;
     private String country;
     private boolean readyToRelocate;
 
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
-
-    private LocalDateTime lastSkillsUpdate;
-    private LocalDateTime lastProfileUpdate;
+    private Boolean openToSuggest;
 }

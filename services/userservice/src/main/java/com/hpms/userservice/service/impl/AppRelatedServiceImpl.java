@@ -1,6 +1,7 @@
 package com.hpms.userservice.service.impl;
 
 import com.hpms.commonlib.constants.RoleEnum;
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.userservice.dto.app.*;
 import com.hpms.userservice.model.Company;
 import com.hpms.userservice.model.Recruiter;
@@ -11,10 +12,12 @@ import com.hpms.userservice.repository.CompanyRepository;
 import com.hpms.userservice.repository.JobSeekerProfileRepository;
 import com.hpms.userservice.repository.RecruiterRepository;
 import com.hpms.userservice.repository.UserRepository;
+import com.hpms.userservice.service.client.ReferenceServiceClient;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.Optional;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -24,6 +27,7 @@ public class AppRelatedServiceImpl {
     private final JobSeekerProfileRepository jobSeekerProfileRepository;
     private final CompanyRepository companyRepository;
     private final RecruiterRepository recruiterRepository;
+    private final ReferenceServiceClient referenceServiceClient;
 
     public RoleEnum getUserRole(UUID userId) {
         Optional<User> optionalUser = userRepository.findById(userId);
@@ -116,6 +120,7 @@ public class AppRelatedServiceImpl {
         if(optionalHobSeeker.isPresent()) {
             JobSeeker js = optionalHobSeeker.get();
             JobSeekerLocation livesIn = js.getLivesIn();
+            Set<SelectOption> skills = referenceServiceClient.getSkillsNames(js.getSkillIds());
             jobSeekerAllInfoForAppDTO = JobSeekerAllInfoForAppDTO.builder()
                     .careerLevel(js.getCareerLevel()!=null?js.getCareerLevel().name():null)
                     .firstName(js.getFirstName())
@@ -145,7 +150,7 @@ public class AppRelatedServiceImpl {
                     .username(js.getUsername())
                     .yearsOfExperience(js.getYearsOfExperience())
                     .showMinimumSalary(js.getShowMinimumSalary())
-                    .skills(js.getSkills())
+                    .skills(skills)
                     .jobExperiences(js.getJobExperiences()
                             .stream().map(
                                     jobExperience -> JobExperienceDTO

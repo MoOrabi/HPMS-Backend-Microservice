@@ -1,8 +1,8 @@
-package com.hpms.userservice.service.shared.impl;
+package com.hpms.referenceservice.service.impl;
 
-import com.hpms.userservice.model.shared.Skill;
-import com.hpms.userservice.repository.shared.SkillRepository;
-import com.hpms.userservice.service.shared.SkillService;
+import com.hpms.referenceservice.model.Skill;
+import com.hpms.referenceservice.repository.SkillRepository;
+import com.hpms.referenceservice.service.SkillService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 

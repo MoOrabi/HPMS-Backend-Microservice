@@ -4,6 +4,7 @@ import com.hpms.commonlib.handler.BadRequestException;
 import com.hpms.commonlib.handler.ResourceNotFoundException;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.jobservice.service.client.AppServiceClient;
+import com.hpms.jobservice.service.client.ReferenceServiceClient;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cloud.client.loadbalancer.LoadBalanced;
@@ -47,7 +48,7 @@ public class HttpClientConfig {
     }
 
     @Bean
-    public AppServiceClient jobServiceClient(WebClient.Builder builder) {
+    public AppServiceClient applicationServiceClient(WebClient.Builder builder) {
         WebClient webClient = builder
                 .baseUrl("http://application-service")
                 .build();
@@ -57,6 +58,19 @@ public class HttpClientConfig {
                 .build();
 
         return factory.createClient(AppServiceClient.class);
+    }
+
+    @Bean
+    public ReferenceServiceClient referenceServiceClient(WebClient.Builder builder) {
+        WebClient webClient = builder
+                .baseUrl("http://reference-service")
+                .build();
+
+        HttpServiceProxyFactory factory = HttpServiceProxyFactory
+                .builderFor(WebClientAdapter.create(webClient))
+                .build();
+
+        return factory.createClient(ReferenceServiceClient.class);
     }
 
     private ExchangeFilterFunction logRequest() {

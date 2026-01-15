@@ -1,9 +1,11 @@
 package com.hpms.jobservice.dto;
 
+import com.hpms.commonlib.dto.SelectOption;
 import lombok.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Setter
@@ -27,6 +29,6 @@ public class JobPostDto {
     private String jobName;
     private Integer applicationNum ;
     private String isApplied ;
-    private List<String> skills;
+    private Set<SelectOption> skills;
     private boolean saved;
 }

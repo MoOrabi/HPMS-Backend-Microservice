@@ -15,7 +15,6 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Date;
 import java.util.Set;
-import java.util.UUID;
 
 
 @Entity
@@ -92,10 +91,15 @@ public class JobSeeker extends User {
     @OneToMany(mappedBy = "jobSeeker", cascade = CascadeType.ALL)
     private Set<WorkSample> workSamples;
 
-    @Lob
-    private Set<String> skills;
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(
+            name = "seeker_skills",
+            joinColumns = @JoinColumn(name = "job_id")
+    )
+    @Column(name = "skill_id")
+    private Set<Long> skillIds;
 
-    @ManyToMany(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
+    @ManyToMany(fetch = FetchType.EAGER, cascade = {CascadeType.DETACH, CascadeType.MERGE, CascadeType.PERSIST, CascadeType.REFRESH})
     @JoinTable(name = "jobseeker_languages",
             joinColumns = @JoinColumn(name = "job_seeker_id"),
             inverseJoinColumns = @JoinColumn(name = "language_id"))
@@ -114,16 +118,10 @@ public class JobSeeker extends User {
 
     private int complete ;
 
-    private LocalDateTime lastSkillsUpdate;
-    private LocalDateTime lastProfileUpdate;
+    private LocalDateTime lastUpdate;
 
-//    @OneToMany(mappedBy = "jobSeeker" , cascade = {
-//            CascadeType.DETACH,CascadeType.MERGE,
-//            CascadeType.PERSIST,CascadeType.REFRESH
-//    })
-//    private List<JobApplication> jobApplications;
 
-    public JobSeeker(String firstName, String lastName, Date date, User user, String jobTitle) {
+    public JobSeeker(String firstName, String lastName, User user, String jobTitle) {
         super(user.getUsername(), user.getPassword(), true, false, user.getProvider(), user.getProviderId(), user.getRole(), user.getAttributes());
         this.firstName = firstName;
         this.lastName = lastName;
@@ -131,7 +129,7 @@ public class JobSeeker extends User {
         this.jobTitle = jobTitle;
     }
 
-    public JobSeeker(String firstName, String lastName, Date date, User user) {
+    public JobSeeker(String firstName, String lastName, User user) {
         super(user.getUsername(), user.getPassword(), true, false, user.getProvider(), user.getProviderId(), user.getRole(), user.getAttributes());
         this.firstName = firstName;
         this.lastName = lastName;

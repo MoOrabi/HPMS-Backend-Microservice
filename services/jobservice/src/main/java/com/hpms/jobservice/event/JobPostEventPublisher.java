@@ -1,12 +1,16 @@
 package com.hpms.jobservice.event;
 
+import com.hpms.commonlib.dto.SelectOption;
+import com.hpms.jobservice.dto.CompanyNameLogoAndLocation;
 import com.hpms.jobservice.model.JobPost;
+import com.hpms.jobservice.service.client.ReferenceServiceClient;
+import com.hpms.jobservice.service.client.UserServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDateTime;
+import java.util.Set;
 import java.util.UUID;
 
 @Service
@@ -16,11 +20,13 @@ public class JobPostEventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
     private static final String TOPIC = "job-events";
+    private final UserServiceClient userServiceClient;
+    private final ReferenceServiceClient referenceServiceClient;
 
-    public void publishJobCreated(JobPost jobPost) {
-        JobPostEventDTO event = buildEventDTO(jobPost, "JOB_CREATED");
+    public void publishJobMatchingPropUpdated(JobPost jobPost) {
+        JobPostEventDTO event = buildEventDTO(jobPost, "JOB_MATCHING_PROP_UPDATED");
         kafkaTemplate.send(TOPIC, event);
-        log.info("Published JOB_CREATED event for job post: {}", jobPost.getId());
+        log.info("Published JOB_MATCHING_PROP_UPDATED event for job post: {}", jobPost.getId());
     }
 
     public void publishJobUpdated(JobPost jobPost) {
@@ -29,9 +35,8 @@ public class JobPostEventPublisher {
         log.info("Published JOB_UPDATED event for job post: {}", jobPost.getId());
     }
 
-    public void publishJobPublished(JobPost jobPost, LocalDateTime lastJobUpdate) {
+    public void publishJobPublished(JobPost jobPost) {
         JobPostEventDTO event = buildEventDTO(jobPost, "JOB_PUBLISHED");
-        event.setLastJobUpdate(lastJobUpdate);
         kafkaTemplate.send(TOPIC, event);
         log.info("Published JOB_PUBLISHED event for job post: {}", jobPost.getId());
     }
@@ -55,6 +60,9 @@ public class JobPostEventPublisher {
     }
 
     private JobPostEventDTO buildEventDTO(JobPost jobPost, String eventType) {
+        CompanyNameLogoAndLocation companyLocationAndLogoDTO = userServiceClient
+                .getCompanyNameLogoAndLocation(jobPost.getCompanyId());
+        Set<SelectOption> skills = referenceServiceClient.getSkillsNames(jobPost.getSkillIds());
         return JobPostEventDTO.builder()
                 .jobPostId(jobPost.getId())
                 .jobTitle(jobPost.getJobTitle())
@@ -62,13 +70,12 @@ public class JobPostEventPublisher {
                 .employmentType(jobPost.getEmploymentType() != null ? jobPost.getEmploymentType().name() : null)
                 .minExperienceYears(jobPost.getMinExperienceYears())
                 .maxExperienceYears(jobPost.getMaxExperienceYears())
-                .minSalary(jobPost.getMinSalary())
-                .maxSalary(jobPost.getMaxSalary())
-                .currency(jobPost.getCurrency())
-                .skillIds(jobPost.getSkillIds())
-                .industryId(jobPost.getIndustryId())
-                .jobNameId(jobPost.getJobNameId())
+                .skills(skills)
                 .companyId(jobPost.getCompanyId())
+                .companyName(companyLocationAndLogoDTO.getCompanyName())
+                .city(companyLocationAndLogoDTO.getCity())
+                .country(companyLocationAndLogoDTO.getCountry())
+                .companyLogo(companyLocationAndLogoDTO.getLogo())
                 .open(jobPost.isOpen())
                 .deleted(jobPost.isDeleted())
                 .publishedOn(jobPost.getPublishedOn())

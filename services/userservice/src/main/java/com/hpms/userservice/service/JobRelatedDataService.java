@@ -1,48 +1,42 @@
 package com.hpms.userservice.service;
 
-import com.hpms.commonlib.handler.BadRequestException;
-import com.hpms.userservice.repository.shared.IndustryRepository;
-import com.hpms.userservice.service.client.JobServiceClient;
 import com.hpms.commonlib.constants.RoleEnum;
+import com.hpms.commonlib.handler.BadRequestException;
 import com.hpms.userservice.dto.*;
 import com.hpms.userservice.mapper.*;
 import com.hpms.userservice.model.Company;
-import com.hpms.userservice.model.shared.Industry;
 import com.hpms.userservice.model.Recruiter;
 import com.hpms.userservice.model.User;
+import com.hpms.userservice.model.shared.Industry;
 import com.hpms.userservice.model.shared.JobName;
-import com.hpms.userservice.model.shared.Skill;
-import com.hpms.userservice.repository.*;
+import com.hpms.userservice.repository.CompanyRepository;
+import com.hpms.userservice.repository.RecruiterRepository;
+import com.hpms.userservice.repository.UserRepository;
+import com.hpms.userservice.repository.shared.IndustryRepository;
 import com.hpms.userservice.repository.shared.JobNameRepository;
-import com.hpms.userservice.repository.shared.SkillRepository;
+import com.hpms.userservice.service.client.ReferenceServiceClient;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestBody;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class JobRelatedDataService {
 
-    private final JobServiceClient jobServiceClient;
-    private JobSeekerProfileRepository jobSeekerProfileRepository;
+    private final ReferenceServiceClient referenceServiceClient;
     private final CompanyRepository companyRepository;
     private final UserRepository userRepository;
     private final RecruiterRepository recruiterRepository;
     private final JobNameRepository jobNameRepository;
     private final IndustryRepository industryRepository;
-    private final SkillRepository skillRepository;
     private final CompanyDTOMapper companyDTOMapper;
     private final JobPostCreatorDTOMapper jobPostCreatorDTOMapper;
     private final RecruiterDTOMapper recruiterDTOMapper;
     private final JobNameDTOMapper jobNameDTOMapper;
-    private final SkillDTOMapper skillDTOMapper;
     private final IndustryDTOMapper industryDTOMapper;
 
     public JobRelatedDataDTO getJobRelatedData(@RequestBody JobRelatedDataRequest request) {
@@ -68,12 +62,6 @@ public class JobRelatedDataService {
 //        }
         List<RecruiterNameAndPhoto> recruiterNameAndPhotos = recruiters
                 .stream().map(recruiterDTOMapper).toList();
-        List<Skill> skills = skillRepository.findAllById(request.getSkillIds());
-        if(skills.isEmpty()) {
-            throw new BadRequestException("Skills Assigned to this job post don't exist any more.");
-        }
-        List<SkillDTO> skillDTOS = skills
-                .stream().map(skillDTOMapper).toList();
         Optional<JobName> optionalJobName = jobNameRepository.findById(request.getJobNameId());
         if(optionalJobName.isEmpty()) {
             throw new BadRequestException("Job Name with id " + request.getJobNameId() + " not found");
@@ -93,7 +81,6 @@ public class JobRelatedDataService {
                 .recruiters(recruiterNameAndPhotos)
                 .jobName(jobNameDTO)
                 .industry(industryDTO)
-                .skills(skillDTOS)
                 .isJobSavedForJS(isJobPostSaved)
                 .build();
     }
@@ -142,4 +129,19 @@ public class JobRelatedDataService {
             });
         return dtos;
     }
+
+    public CompanyNameLogoAndLocation getCompanyNameLogoAndLocation(UUID companyId) {
+        Optional<Company> optionalCompany = companyRepository.findById(companyId);
+        if(optionalCompany.isEmpty()) {
+            return CompanyNameLogoAndLocation.builder().build();
+        }
+        Company company = optionalCompany.get();
+        return CompanyNameLogoAndLocation.builder()
+                .companyName(company.getName())
+                .logo(company.getLogo())
+                .city(company.getMainBranchLocation()!=null?company.getMainBranchLocation().getCity():null)
+                .country(company.getMainBranchLocation()!=null?company.getMainBranchLocation().getCountry():null)
+                .build();
+    }
+
 }

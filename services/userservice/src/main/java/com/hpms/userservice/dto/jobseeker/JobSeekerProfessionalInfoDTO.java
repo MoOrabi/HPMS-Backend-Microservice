@@ -1,5 +1,6 @@
 package com.hpms.userservice.dto.jobseeker;
 
+import com.hpms.commonlib.dto.SelectOption;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -16,5 +17,5 @@ public class JobSeekerProfessionalInfoDTO {
 
     private String yearsOfExperience;
 
-    private Set<String> skills = new HashSet<>();
+    private Set<SelectOption> skills = new HashSet<>();
 }

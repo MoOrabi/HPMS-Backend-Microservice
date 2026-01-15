@@ -6,10 +6,7 @@ import com.hpms.recommendationservice.model.JobSeekerProfile;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -89,10 +86,12 @@ public class RecommendationEngine {
 
         // Normalize
         Set<String> seeker = seekerSkills.stream()
+                .filter(Objects::nonNull)
                 .map(this::normalize)
                 .collect(Collectors.toSet());
 
         Set<String> job = jobSkills.stream()
+                .filter(Objects::nonNull)
                 .map(this::normalize)
                 .collect(Collectors.toSet());
 
@@ -122,6 +121,9 @@ public class RecommendationEngine {
     }
 
     private String normalize(String skill) {
+        if(skill==null) {
+            return null;
+        }
         return skill.toLowerCase()
                 .trim()
                 .replaceAll("\\s+", " ");
@@ -184,8 +186,8 @@ public class RecommendationEngine {
         String jobCity = normalize(job.getCity());
         String jobCountry = normalize(job.getCountry());
 
-        if(seekerCountry.equals(jobCountry)) {
-            if(seekerCity.equals(jobCity)) {
+        if(seekerCountry != null && seekerCountry.equals(jobCountry)) {
+            if(seekerCity != null && seekerCity.equals(jobCity)) {
                 return 1;
             } else {
                 return 0.8;

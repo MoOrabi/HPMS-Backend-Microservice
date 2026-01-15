@@ -1,6 +1,7 @@
-package com.hpms.userservice.repository.shared;
+package com.hpms.referenceservice.repository;
 
-import com.hpms.userservice.model.shared.Skill;
+import com.hpms.commonlib.dto.SelectOption;
+import com.hpms.referenceservice.model.Skill;
 import jakarta.transaction.Transactional;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -8,6 +9,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Set;
 
 @Repository
 @Transactional
@@ -19,4 +21,7 @@ public interface SkillRepository extends JpaRepository<Skill, Long> {
 
     @Query(nativeQuery = true, value = "select * FROM skill j limit :limit")
     List<Skill> findAllWithLimit(@Param("limit") int limit);
+
+    @Query(value = "select NEW com.hpms.commonlib.dto.SelectOption(s.id, s.name) from Skill s where s.id in :skillIds")
+    Set<SelectOption> findAllNamesByIds(Set<Long> skillIds);
 }

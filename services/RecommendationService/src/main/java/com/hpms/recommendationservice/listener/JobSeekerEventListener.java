@@ -1,5 +1,6 @@
 package com.hpms.recommendationservice.listener;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.recommendationservice.dto.JobSeekerEvent;
 import com.hpms.recommendationservice.model.JobSeekerProfile;
 import com.hpms.recommendationservice.repository.JobSeekerProfileRepository;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,11 +32,10 @@ public class JobSeekerEventListener {
 
         switch (event.getEventType()) {
             case "PROFILE_UPDATED":
-                if(event.isMatchingPropertyChanged()) {
-                    syncJobSeekerProfile(event);
-                } else {
-                    handleSkillsUpdate(event);
-                }
+                syncJobSeekerProfile(event);
+                break;
+            case "MATCHING_PROP_UPDATED":
+                handleMatchingPropUpdate(event);
                 break;
             case "PROFILE_DELETED":
                 handleProfileDeletion(event.getJobSeekerId());
@@ -47,33 +48,30 @@ public class JobSeekerEventListener {
                 .jobSeekerId(event.getJobSeekerId())
                 .firstName(event.getFirstName())
                 .lastName(event.getLastName())
+                .photo(event.getPhoto())
                 .jobTitle(event.getJobTitle())
                 .yearsOfExperience(event.getYearsOfExperience())
                 .careerLevel(event.getCareerLevel())
-                .skills(event.getSkills())
+                .skills(event.getSkills().stream().map(SelectOption::getName).collect(Collectors.toSet()))
+                .highestDegreeInstitute(event.getHighestDegreeInstitute())
+                .highestDegreeName(event.getHighestDegreeName())
+                .lastJobTitle(event.getLastJobTitle())
+                .lastJobOrganizationName(event.getLastJobOrganizationName())
+                .lastJobStartedAt(event.getLastJobStartedAt())
+                .lastJobEndedAt(event.getLastJobEndedAt())
+                .city(event.getCity())
+                .country(event.getCountry())
                 .jobTypesInterestedIn(event.getJobTypesInterestedIn())
                 .readyToRelocate(event.isReadyToRelocate())
-                .lastProfileUpdate(event.getLastProfileUpdate())
-                .lastSkillsUpdate(event.getLastSkillsUpdate())
+                .openToSuggest(event.isOpenToSuggest())
                 .build();
         jobSeekerProfileRepository.save(profile);
 
         log.info("Synced job seeker profile: {}", event.getJobSeekerId());
     }
 
-    private void handleSkillsUpdate(JobSeekerEvent event) {
+    private void handleMatchingPropUpdate(JobSeekerEvent event) {
         log.info("Handling skills update for job seeker: {}", event.getJobSeekerId());
-
-        // Validate update frequency
-        JobSeekerProfile existingProfile = jobSeekerProfileRepository.findById(event.getJobSeekerId())
-                .orElse(null);
-
-        if (existingProfile != null && existingProfile.getLastSkillsUpdate() != null) {
-            if (!matchingService.canUpdateProfile(existingProfile.getLastSkillsUpdate())) {
-                log.warn("Job seeker {} attempted to update skills too frequently", event.getJobSeekerId());
-                return;
-            }
-        }
 
         // Sync profile with updated skills
         syncJobSeekerProfile(event);

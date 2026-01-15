@@ -29,7 +29,7 @@ public class MatchingService {
     private final RecommendationLogRepository recommendationLogRepository;
 
     private static final int MIN_UPDATE_INTERVAL_HOURS = 1;
-    private static final double MIN_MATCH_SCORE = 0.1;
+    private static final double MIN_MATCH_SCORE = 0;
 
     /**
      * Validates if enough time has passed since last update
@@ -98,7 +98,7 @@ public class MatchingService {
 
         // Calculate scores and create matches
         List<RecommendationLog> jobMatches = new ArrayList<>();
-        List<RecommendationLog> candidateMatches = new ArrayList<>();
+//        List<RecommendationLog> candidateMatches = new ArrayList<>();
 
         for (JobSeekerProfile seeker : seekers) {
             RecommendationScore score = recommendationEngine.calculateJobMatchScore(seeker, job);
@@ -111,20 +111,23 @@ public class MatchingService {
                         .build();
                 jobMatches.add(jobToSeeker);
 
-                // Create candidate-to-job match
-                RecommendationLog candidateToJob = RecommendationLog.builder()
-                        .jobSeekerId(seeker.getJobSeekerId())
-                        .jobPostId(jobPostId)
-                        .score(score.getTotalScore())
-                        .build();
-                candidateMatches.add(candidateToJob);
+//                // Create candidate-to-job match
+//                RecommendationLog candidateToJob = RecommendationLog.builder()
+//                        .jobSeekerId(seeker.getJobSeekerId())
+//                        .jobPostId(jobPostId)
+//                        .score(score.getTotalScore())
+//                        .build();
+//                candidateMatches.add(candidateToJob);
             }
         }
 
         recommendationLogRepository.saveAll(jobMatches);
-        recommendationLogRepository.saveAll(candidateMatches);
+//        recommendationLogRepository.saveAll(candidateMatches);
         log.info("Created {} job-to-seeker and {} candidate-to-job matches for job post {}",
-                jobMatches.size(), candidateMatches.size(), jobPostId);
+                jobMatches.size(),
+//                candidateMatches.size()
+                0
+                , jobPostId);
     }
 
     /**

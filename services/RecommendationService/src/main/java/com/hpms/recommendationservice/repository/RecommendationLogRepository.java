@@ -1,6 +1,8 @@
 package com.hpms.recommendationservice.repository;
 
 import com.hpms.recommendationservice.model.RecommendationLog;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
@@ -27,11 +29,14 @@ public interface RecommendationLogRepository extends JpaRepository<Recommendatio
     @Query("SELECT r FROM RecommendationLog r WHERE r.jobPostId = :jobPostId ORDER BY r.score DESC")
     List<RecommendationLog> findByJobPostIdOrderByScoreDesc(@Param("jobPostId") UUID jobPostId);
 
-    @Query("SELECT r FROM RecommendationLog r WHERE r.jobPostId = :jobPostId ORDER BY r.score ASC limit :limit")
-    List<RecommendationLog> findByJobPostIdOrderByScoreAscWithLimit(@Param("jobPostId") UUID jobPostId, @Param("limit")int limit);
+    @Query("SELECT r FROM RecommendationLog r WHERE r.jobPostId = :jobPostId ORDER BY r.score ASC")
+    Page<RecommendationLog> findByJobPostIdOrderByScoreAsc(@Param("jobPostId") UUID jobPostId,
+                                                           Pageable pageable);
 
-    @Query("SELECT r FROM RecommendationLog r WHERE r.jobSeekerId = :seekerId ORDER BY r.score ASC limit :limit")
-    List<RecommendationLog> findBySeekerIdOrderByScoreAscWithLimit(@Param("seekerId") UUID seekerId, @Param("limit")int limit);
+    @Query("SELECT r FROM RecommendationLog r WHERE r.jobSeekerId = :seekerId ORDER BY r.score ASC")
+    Page<RecommendationLog> findBySeekerIdOrderByScoreAsc(@Param("seekerId") UUID seekerId,
+                                                          Pageable pageable);
+
 
     // Delete all recommendations for a job seeker
     @Modifying

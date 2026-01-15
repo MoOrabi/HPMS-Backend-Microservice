@@ -1,7 +1,7 @@
-package com.hpms.userservice.controller.shared;
+package com.hpms.referenceservice.controller;
 
-import com.hpms.userservice.model.shared.Skill;
-import com.hpms.userservice.service.shared.impl.SkillServiceImp;
+import com.hpms.referenceservice.model.Skill;
+import com.hpms.referenceservice.service.impl.SkillServiceImp;
 import lombok.extern.java.Log;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -14,7 +14,7 @@ import java.util.List;
 
 @Log
 @RestController
-@RequestMapping("/api/users/APIs")
+@RequestMapping("/api/references/APIs")
 public class SkillController {
 
     @Autowired

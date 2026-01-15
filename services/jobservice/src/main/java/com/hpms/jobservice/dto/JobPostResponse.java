@@ -1,5 +1,6 @@
 package com.hpms.jobservice.dto;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.jobservice.constants.EmploymentType;
 import com.hpms.jobservice.constants.JobType;
 import com.hpms.jobservice.model.Question;
@@ -9,6 +10,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Setter
@@ -43,7 +45,7 @@ public class JobPostResponse {
     private JobPostCreatorDTO creator;
     private List<Question> questions;
     private List<RecruiterNameAndPhoto> recruitersTeam;
-    private List<SkillDTO> skills;
+    private Set<SelectOption> skills;
     private boolean deleted;
     private JobApplicationNumberPerStatus numberPerStatus;
     private JobPostDashboardNumbers dashboardNumbers;

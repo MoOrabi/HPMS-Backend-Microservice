@@ -11,4 +11,5 @@ import java.util.UUID;
 @Transactional
 public interface JobExperienceRepository extends JpaRepository<JobExperience, UUID> {
 
+    JobExperience findFirstDistinctByJobSeekerIdOrderByStartYearDescStartMonthDesc(UUID id);
 }

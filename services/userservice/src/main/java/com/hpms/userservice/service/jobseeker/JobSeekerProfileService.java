@@ -1,28 +1,29 @@
 package com.hpms.userservice.service.jobseeker;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.userservice.dto.jobseeker.*;
+import com.hpms.userservice.event.JobSeekerEventPublisher;
 import com.hpms.userservice.mapper.jobseeker.JobSeekerSourceDestinationMapper;
 import com.hpms.userservice.model.jobseeker.JobSeeker;
 import com.hpms.userservice.model.jobseeker.JobSeekerLocation;
 import com.hpms.userservice.model.jobseeker.WorkSample;
-import com.hpms.userservice.model.shared.Skill;
 import com.hpms.userservice.repository.JobSeekerProfileRepository;
 import com.hpms.userservice.repository.jobseeker.JobSeekerLocationRepository;
 import com.hpms.userservice.repository.jobseeker.WorkSamplesRepository;
-import com.hpms.userservice.repository.shared.JobNameRepository;
-import com.hpms.userservice.repository.shared.SkillRepository;
+import com.hpms.userservice.service.client.ReferenceServiceClient;
 import com.hpms.userservice.utils.FrequentlyUsed;
-import com.hpms.userservice.utils.JwtTokenUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
-import java.util.List;
+import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 import static com.hpms.userservice.utils.FrequentlyUsed.cvExtensions;
 import static com.hpms.userservice.utils.FrequentlyUsed.imageExtensions;
@@ -31,17 +32,9 @@ import static com.hpms.userservice.utils.FrequentlyUsed.imageExtensions;
 @Service
 public class JobSeekerProfileService {
     @Autowired
-    private JwtTokenUtils jwtTokenUtils;
-    @Autowired
     private JobSeekerProfileRepository jobSeekerProfileRepository;
     @Autowired
-    private JobNameRepository jobNameRepository;
-    @Autowired
-    private SkillRepository skillRepository;
-    @Autowired
     private JobSeekerLocationRepository locationRepository;
-    @Autowired
-    private JwtTokenUtils tokenUtils;
     @Autowired
     private FrequentlyUsed frequentlyUsed;
 
@@ -51,10 +44,12 @@ public class JobSeekerProfileService {
     @Autowired
     JobSeekerSourceDestinationMapper jobSeekerSourceDestinationMapper;
 
-    @Autowired(required = false)
-    private com.hpms.userservice.event.JobSeekerEventPublisher eventPublisher;
+    @Autowired
+    private JobSeekerEventPublisher eventPublisher;
 
     private static final long MIN_UPDATE_INTERVAL_HOURS = 1;
+    @Autowired
+    private ReferenceServiceClient referenceServiceClient;
 
     public ApiResponse<?> saveProfilePhoto(String token, MultipartFile profileFile) throws Exception {
         return frequentlyUsed.addFileToUser(token, profileFile, "js-profile", 2 * 1048,
@@ -64,7 +59,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getProfilePhoto(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -95,7 +90,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getWorkSamples(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -176,7 +171,7 @@ public class JobSeekerProfileService {
     public ApiResponse<?> saveBasicInfo(String token, JobSeekerBasicInfoDTO basicInfoDTO) {
 
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -184,6 +179,16 @@ public class JobSeekerProfileService {
             jobSeeker = (JobSeeker) isThereUserFromToken.getBody();
         }
 
+        boolean matchingPropChanged = (
+                (jobSeeker.getLivesIn() != null && (!basicInfoDTO.getLivesIn().getCity().equals(jobSeeker.getLivesIn().getCity())
+                || !basicInfoDTO.getLivesIn().getCountry().equals(jobSeeker.getLivesIn().getCountry())))
+        || !basicInfoDTO.getReadyToRelocate().equals(jobSeeker.isReadyToRelocate()));
+
+        if (isUpdateRateExceeded(jobSeeker.getLastUpdate(), matchingPropChanged)) return ApiResponse.builder()
+                .ok(false)
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .message("You can only update your profile once per hour. Please try again later.")
+                .build();
 
         jobSeeker.setFirstName(basicInfoDTO.getFirstName());
         jobSeeker.setLastName(basicInfoDTO.getLastName());
@@ -209,6 +214,13 @@ public class JobSeekerProfileService {
 
         jobSeekerProfileRepository.save(jobSeeker);
 
+        if (matchingPropChanged) {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishMatchPropUpdated(jobSeeker);
+        } else {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishProfileUpdated(jobSeeker);
+        }
         return ApiResponse.builder().ok(true)
                 .status(HttpStatus.OK.value())
                 .message("")
@@ -216,10 +228,21 @@ public class JobSeekerProfileService {
                 .build();
     }
 
+    private boolean isUpdateRateExceeded(LocalDateTime lastUpdateDate, boolean matchingPropChanged) {
+        if (matchingPropChanged && lastUpdateDate != null) {
+            Duration duration = Duration.between(
+                    lastUpdateDate,
+                    LocalDateTime.now()
+            );
+            return duration.toHours() < MIN_UPDATE_INTERVAL_HOURS;
+        }
+        return false;
+    }
+
 
     public ApiResponse<?> getBasicInfo(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -249,7 +272,7 @@ public class JobSeekerProfileService {
                                               JobSeekerCareerInterestsDTO careerInterestsDTO) {
 
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -257,6 +280,14 @@ public class JobSeekerProfileService {
             jobSeeker = (JobSeeker) isThereUserFromToken.getBody();
         }
 
+        boolean matchingPropChanged = (!careerInterestsDTO.getJobsTypesUserInterestedIn().equals(jobSeeker.getJobsTypesUserInterestedIn())
+        || !careerInterestsDTO.getOpenToSuggest().equals(jobSeeker.getOpenToSuggest()));
+
+        if (isUpdateRateExceeded(jobSeeker.getLastUpdate(), matchingPropChanged)) return ApiResponse.builder()
+                .ok(false)
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .message("You can only update your profile once per hour. Please try again later.")
+                .build();
         jobSeeker.setCareerLevel(careerInterestsDTO.getCareerLevel());
         jobSeeker.setJobStatus(careerInterestsDTO.getJobStatus());
         jobSeeker.setJobsTypesUserInterestedIn(careerInterestsDTO.getJobsTypesUserInterestedIn());
@@ -269,6 +300,13 @@ public class JobSeekerProfileService {
 
         jobSeekerProfileRepository.save(jobSeeker);
 
+        if (matchingPropChanged) {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishMatchPropUpdated(jobSeeker);
+        } else {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishProfileUpdated(jobSeeker);
+        }
 
         return ApiResponse.builder()
                 .ok(true)
@@ -280,7 +318,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getCareerInterests(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -307,7 +345,7 @@ public class JobSeekerProfileService {
     public ApiResponse<?> saveProfessionalInfo(String token,
                                                JobSeekerProfessionalInfoDTO professionalInfoDTO) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -315,59 +353,40 @@ public class JobSeekerProfileService {
             jobSeeker = (JobSeeker) isThereUserFromToken.getBody();
         }
 
-        // Check if skills are being updated
-        boolean skillsChanged = !professionalInfoDTO.getSkills().equals(jobSeeker.getSkills());
+        boolean matchingPropChanged = ((professionalInfoDTO.getSkills()!=null&&!professionalInfoDTO.getSkills().stream().map(SelectOption::getId).equals(jobSeeker.getSkillIds()))
+            || !professionalInfoDTO.getYearsOfExperience().equals(jobSeeker.getYearsOfExperience()));
 
-        // Rate limiting for skills update
-        if (skillsChanged && jobSeeker.getLastSkillsUpdate() != null) {
-            java.time.Duration duration = java.time.Duration.between(
-                    jobSeeker.getLastSkillsUpdate(),
-                    java.time.LocalDateTime.now()
-            );
-            if (duration.toHours() < MIN_UPDATE_INTERVAL_HOURS) {
-                return ApiResponse.builder()
-                        .ok(false)
-                        .status(HttpStatus.TOO_MANY_REQUESTS.value())
-                        .message("You can only update your skills once per hour. Please try again later.")
-                        .build();
-            }
-        }
+        if (isUpdateRateExceeded(jobSeeker.getLastUpdate(), matchingPropChanged)) return ApiResponse.builder()
+                .ok(false)
+                .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                .message("You can only update your profile once per hour. Please try again later.")
+                .build();
 
         jobSeeker.setYearsOfExperience(professionalInfoDTO.getYearsOfExperience());
-        jobSeeker.setSkills(professionalInfoDTO.getSkills());
-
-        // Update timestamp if skills changed
-        if (skillsChanged) {
-            jobSeeker.setLastSkillsUpdate(java.time.LocalDateTime.now());
-        }
-
-        List<Skill> availableSkills = skillRepository.findAll();
-        var skills = professionalInfoDTO.getSkills();
-        for (String skill : skills) {
-            if (!availableSkills.contains(new Skill(skill))) {
-                skillRepository.save(new Skill(skill));
-            }
-        }
+        jobSeeker.setSkillIds(professionalInfoDTO.getSkills().stream().map(SelectOption::getId).collect(Collectors.toSet()));
 
         jobSeekerProfileRepository.save(jobSeeker);
 
-        // Publish event to recommendation service if skills changed
-        if (skillsChanged && eventPublisher != null) {
-            eventPublisher.publishSkillsUpdated(jobSeeker, jobSeeker.getLastSkillsUpdate());
+        if (matchingPropChanged) {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishMatchPropUpdated(jobSeeker);
+        } else {
+            jobSeeker.setLastUpdate(LocalDateTime.now());
+            eventPublisher.publishProfileUpdated(jobSeeker);
         }
 
         return ApiResponse.builder()
                 .ok(true)
                 .status(HttpStatus.OK.value())
                 .body(professionalInfoDTO)
-                .message("")
+                .message("Job Seeker Professional Info Saved Successfully")
                 .build();
     }
 
 
     public ApiResponse<?> getProfessionalInfo(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -375,8 +394,9 @@ public class JobSeekerProfileService {
             jobSeeker = (JobSeeker) isThereUserFromToken.getBody();
         }
 
+        Set<SelectOption> skills = referenceServiceClient.getSkillsNames(jobSeeker.getSkillIds());
         JobSeekerProfessionalInfoDTO jobSeekerProfessionalInfoDTO = new JobSeekerProfessionalInfoDTO(
-                jobSeeker.getYearsOfExperience(), jobSeeker.getSkills());
+                jobSeeker.getYearsOfExperience(), skills);
         return ApiResponse.builder()
                 .ok(true)
                 .status(HttpStatus.OK.value())
@@ -393,7 +413,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getCV(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -412,7 +432,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> deleteCV(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -463,7 +483,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> setJobTitle(String token, String jobTitle) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -482,7 +502,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getJobTitle(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -499,7 +519,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> setJobAlertsStatus(String token, boolean value) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -518,7 +538,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getJobAlertsStatus(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -535,7 +555,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> setPrivateStatus(String token, boolean value) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -554,7 +574,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getPrivateStatus(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;
@@ -588,7 +608,7 @@ public class JobSeekerProfileService {
 
     public ApiResponse<?> getNameAndEmail(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
-        JobSeeker jobSeeker = null;
+        JobSeeker jobSeeker;
 
         if (!isThereUserFromToken.isOk()) {
             return isThereUserFromToken;

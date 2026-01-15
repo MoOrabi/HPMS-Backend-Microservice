@@ -1,15 +1,14 @@
 package com.hpms.recommendationservice.controller;
 
 import com.hpms.commonlib.dto.ApiResponse;
+import com.hpms.commonlib.dto.PageResponse;
 import com.hpms.recommendationservice.dto.CandidateRecommendationDTO;
 import com.hpms.recommendationservice.service.CandidateRecommendationService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -24,10 +23,11 @@ public class CandidateRecommendationController {
     @Operation(summary = "Get candidate recommendations for a job post")
     public ApiResponse<?> getCandidateRecommendations(
             @PathVariable UUID jobPostId,
-            @RequestParam(defaultValue = "50") int limit) {
+            @RequestParam(defaultValue = "5", name = "page_size") int pageSize,
+            @RequestParam(defaultValue = "0", name = "page_number") int pageNumber) {
 
-        List<CandidateRecommendationDTO> recommendations =
-                candidateRecommendationService.recommendCandidatesForJob(jobPostId, limit);
+        PageResponse<CandidateRecommendationDTO> recommendations =
+                candidateRecommendationService.recommendCandidatesForJob(jobPostId, pageSize, pageNumber);
 
         // Check if no recommendations and provide helpful message
         if (recommendations.isEmpty()) {

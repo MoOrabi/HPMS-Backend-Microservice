@@ -1,6 +1,8 @@
 package com.hpms.recommendationservice.service;
 
+import com.hpms.commonlib.dto.PageResponse;
 import com.hpms.commonlib.handler.ResourceNotFoundException;
+import com.hpms.commonlib.util.PageUtils;
 import com.hpms.recommendationservice.dto.CandidateRecommendationDTO;
 import com.hpms.recommendationservice.model.JobPostProfile;
 import com.hpms.recommendationservice.model.JobSeekerProfile;
@@ -10,9 +12,11 @@ import com.hpms.recommendationservice.repository.JobSeekerProfileRepository;
 import com.hpms.recommendationservice.repository.RecommendationLogRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -25,17 +29,17 @@ public class CandidateRecommendationService {
     private final JobPostProfileRepository jobPostProfileRepository;
     private final RecommendationLogRepository recommendationLogRepository;
 
-    public List<CandidateRecommendationDTO> recommendCandidatesForJob(
+    public PageResponse<CandidateRecommendationDTO> recommendCandidatesForJob(
             UUID jobPostId,
-            int limit) {
+            int pageSize, int pageNumber) {
 
         log.info("Getting candidate recommendations for job post: {}", jobPostId);
 
-        List<RecommendationLog> recommendationLogs = recommendationLogRepository.findByJobPostIdOrderByScoreAscWithLimit(jobPostId, limit);
-        // Convert to DTOs
-        return recommendationLogs.stream()
-                .map(this::toCandidateRecommendationDTO)
-                .toList();
+        Pageable pageable = PageRequest.of(pageNumber-1, pageSize);
+        Page<RecommendationLog> recommendationLogs = recommendationLogRepository.findByJobPostIdOrderByScoreAsc(jobPostId, pageable);
+        Page<CandidateRecommendationDTO> recommendationDTOS = recommendationLogs.map(this::toCandidateRecommendationDTO);
+
+        return PageUtils.toPageResponse(recommendationDTOS);
     }
     private CandidateRecommendationDTO toCandidateRecommendationDTO(RecommendationLog recommendationLog) {
         UUID seekerId = recommendationLog.getJobSeekerId();
@@ -49,8 +53,9 @@ public class CandidateRecommendationService {
                 .jobSeekerId(seeker.getJobSeekerId())
                 .firstName(seeker.getFirstName())
                 .lastName(seeker.getLastName())
-                .careerLevel(seeker.getCareerLevel())
+                .photo(seeker.getPhoto())
                 .jobTitle(seeker.getJobTitle())
+                .careerLevel(seeker.getCareerLevel())
                 .skills(seeker.getSkills())
                 .highestDegreeName(seeker.getHighestDegreeName())
                 .highestDegreeInstitute(seeker.getHighestDegreeInstitute())
@@ -67,11 +72,18 @@ public class CandidateRecommendationService {
      * Generate helpful advice for jobs with no candidate recommendations
      */
     public String generateNoCandidatesAdvice(UUID jobPostId) {
-        JobPostProfile job = jobPostProfileRepository.findById(jobPostId)
-                .orElseThrow(() -> new ResourceNotFoundException("Job post not found"));
+        Optional<JobPostProfile> optionalJob = jobPostProfileRepository.findById(jobPostId);
 
-        StringBuilder advice = new StringBuilder("No matching candidates found at the moment. Here's how to attract more candidates:\n\n");
+        StringBuilder advice = new StringBuilder("No matching candidates found at the moment.");
+
+        if(optionalJob.isEmpty()) {
+            return advice.toString();
+        }
+        JobPostProfile job = optionalJob.get();
+
         boolean hasIssues = false;
+
+        advice.append("Here's how to attract more candidates:\n\n");
 
         if (job.getSkills() == null || job.getSkills().isEmpty()) {
             advice.append("• Add required skills to your job posting\n");

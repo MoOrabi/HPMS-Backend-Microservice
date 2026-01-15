@@ -10,4 +10,5 @@ import java.util.UUID;
 @Repository
 @Transactional
 public interface EducationRepository extends JpaRepository<Education, UUID> {
+    Education findFirstDistnictByJobSeekerIdOrderByStartDesc(UUID id);
 }

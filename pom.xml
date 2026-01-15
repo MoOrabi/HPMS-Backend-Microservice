@@ -35,6 +35,7 @@
 		<module>services/jobservice</module>
 		<module>services/applicationservice</module>
 		<module>services/recommendationservice</module>
+		<module>services/referenceservice</module>
         <module>common/common-lib</module>
     </modules>
 	<properties>

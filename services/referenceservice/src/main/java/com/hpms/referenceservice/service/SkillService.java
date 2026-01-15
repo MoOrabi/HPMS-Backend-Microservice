@@ -1,6 +1,6 @@
-package com.hpms.userservice.service.shared;
+package com.hpms.referenceservice.service;
 
-import com.hpms.userservice.model.shared.Skill;
+import com.hpms.referenceservice.model.Skill;
 import org.springframework.stereotype.Service;
 
 import java.util.List;

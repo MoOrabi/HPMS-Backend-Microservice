@@ -1,13 +1,9 @@
 package com.hpms.userservice.controller;
 
-import com.hpms.userservice.dto.CompanyAndRecruiterIds;
-import com.hpms.userservice.dto.CompanyLocationAndLogoDTO;
-import com.hpms.userservice.dto.JobRelatedDataDTO;
-import com.hpms.userservice.dto.JobRelatedDataRequest;
+import com.hpms.userservice.dto.*;
 import com.hpms.userservice.service.JobRelatedDataService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.service.annotation.GetExchange;
 
 import java.util.List;
 import java.util.UUID;
@@ -32,6 +28,11 @@ public class JobRelatedDataController {
     @GetMapping("/company-location-logo")
     List<CompanyLocationAndLogoDTO> getCompanyLocationAndLogos(@RequestBody List<UUID> companyIds) {
         return jobRelatedDataService.getCompanyLocationAndLogos(companyIds);
+    }
+
+    @GetMapping("/company-name-logo-location/{companyId}")
+    public CompanyNameLogoAndLocation getCompanyNameLogoAndLocation(@PathVariable UUID companyId) {
+        return jobRelatedDataService.getCompanyNameLogoAndLocation(companyId);
     }
 
 }

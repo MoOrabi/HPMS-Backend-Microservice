@@ -1,51 +1,51 @@
 package com.hpms.recommendationservice.dto;
 
-import jakarta.persistence.*;
+import com.hpms.commonlib.dto.SelectOption;
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
-import java.util.HashSet;
 import java.util.Set;
 import java.util.UUID;
 
 @Data
 @Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class JobSeekerEvent {
 
     private UUID jobSeekerId;
 
     private String firstName;
     private String lastName;
+    private String photo;
     private String jobTitle;
 
     private String yearsOfExperience;
 
     private String careerLevel;
 
-    private String minimumSalaryValue;
+    private String highestDegreeName;
+    private String highestDegreeInstitute;
 
-    private String minimumSalaryCurrency;
+    private String lastJobTitle;
+    private String lastJobOrganizationName;
+    private String lastJobStartedAt;
+    private String lastJobEndedAt;
 
-    private Set<String> skills;
+    private Set<SelectOption> skills;
+
+    private String city;
+    private String country;
 
     private Set<String> jobTypesInterestedIn;
 
-    private Set<String> jobsInterestedIn;
-
-    private String educationLevel;
-    private String location;
     private boolean readyToRelocate;
-    private String gender;
-
-    private boolean searchable;
 
     private boolean openToSuggest;
 
-    private LocalDateTime lastSkillsUpdate;
-    private LocalDateTime lastProfileUpdate;
-
     private String eventType;
-    private boolean matchingPropertyChanged;
 
 }

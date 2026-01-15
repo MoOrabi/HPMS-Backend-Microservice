@@ -1,5 +1,6 @@
 package com.hpms.userservice.dto.app;
 
+import com.hpms.commonlib.dto.SelectOption;
 import lombok.*;
 import org.springframework.data.annotation.CreatedDate;
 
@@ -67,7 +68,7 @@ public class JobSeekerAllInfoForAppDTO {
 
     private List<EducationDTO> educations;
 
-    private Set<String> skills;
+    private Set<SelectOption> skills;
 
     private List<LanguageDTO> languages;
 

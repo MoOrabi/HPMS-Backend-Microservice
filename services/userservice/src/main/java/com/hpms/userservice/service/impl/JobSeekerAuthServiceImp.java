@@ -1,15 +1,14 @@
 package com.hpms.userservice.service.impl;
 
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.userservice.config.AuthenticationProviderService;
 import com.hpms.userservice.constants.AuthProviders;
-import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.userservice.dto.JobSeekerAuthReq;
 import com.hpms.userservice.dto.JobSeekerRegisterRequest;
-import com.hpms.userservice.model.jobseeker.JobSeeker;
 import com.hpms.userservice.model.User;
+import com.hpms.userservice.model.jobseeker.JobSeeker;
 import com.hpms.userservice.repository.JobSeekerProfileRepository;
-import com.hpms.userservice.repository.RoleRepository;
 import com.hpms.userservice.service.JobSeekerAuthService;
 import com.hpms.userservice.utils.JwtTokenUtils;
 import lombok.extern.java.Log;
@@ -21,7 +20,6 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import java.util.Date;
 import java.util.Optional;
 
 import static com.hpms.userservice.dto.SuccessLoginRes.SuccessRegisterResponse;
@@ -32,24 +30,21 @@ import static com.hpms.userservice.utils.AppConstants.LOCAL_PROVIDER_ID;
 @Log
 public class JobSeekerAuthServiceImp implements JobSeekerAuthService {
 
-    private JobSeekerProfileRepository jobSeekerProfileRepository;
+    private final JobSeekerProfileRepository jobSeekerProfileRepository;
 
-    private RoleRepository roleRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    private PasswordEncoder passwordEncoder;
+    private final AuthenticationProviderService authenticationProviderService;
 
-    private AuthenticationProviderService authenticationProviderService;
-
-    private JwtTokenUtils jwtTokenUtils;
+    private final JwtTokenUtils jwtTokenUtils;
 
     @Autowired
     @Lazy
     public JobSeekerAuthServiceImp(JobSeekerProfileRepository jobSeekerProfileRepository,
-                                   RoleRepository roleRepository, PasswordEncoder passwordEncoder,
+                                   PasswordEncoder passwordEncoder,
                                    AuthenticationProviderService authenticationProviderService,
                                    JwtTokenUtils jwtTokenUtils) {
         this.jobSeekerProfileRepository = jobSeekerProfileRepository;
-        this.roleRepository = roleRepository;
         this.passwordEncoder = passwordEncoder;
         this.authenticationProviderService = authenticationProviderService;
         this.jwtTokenUtils = jwtTokenUtils;
@@ -126,7 +121,7 @@ public class JobSeekerAuthServiceImp implements JobSeekerAuthService {
                 .provider(AuthProviders.local)
                 .providerId(LOCAL_PROVIDER_ID)
                 .build();
-        return new JobSeeker(jobSeekerRegisterRequest.getFirstName(), jobSeekerRegisterRequest.getLastName(), new Date(),
+        return new JobSeeker(jobSeekerRegisterRequest.getFirstName(), jobSeekerRegisterRequest.getLastName(),
                 user, jobSeekerRegisterRequest.getJobTitle());
     }
 

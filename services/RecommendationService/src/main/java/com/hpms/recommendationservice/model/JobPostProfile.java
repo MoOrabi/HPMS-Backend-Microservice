@@ -25,10 +25,8 @@ public class JobPostProfile {
 
     private String jobTitle;
 
-    @Enumerated(EnumType.STRING)
     private String jobType;
 
-    @Enumerated(EnumType.STRING)
     private String employmentType;
 
     private String city;
@@ -38,8 +36,6 @@ public class JobPostProfile {
     private int minExperienceYears;
     private int maxExperienceYears;
 
-    private String educationLevel;
-
     @ElementCollection
     @CollectionTable(name = "jobpost_skills", joinColumns = @JoinColumn(name = "jobpost_id"))
     @Column(name = "skill")
@@ -47,13 +43,10 @@ public class JobPostProfile {
 
     private UUID companyId;
     private String companyName;
+    private String companyLogo;
+
     private boolean open = true;
     private boolean deleted = false;
 
     private LocalDateTime publishedOn;
-
-    @UpdateTimestamp
-    private LocalDateTime lastUpdated;
-
-    private LocalDateTime lastJobUpdate;
 }

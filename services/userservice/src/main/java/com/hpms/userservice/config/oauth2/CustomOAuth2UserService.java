@@ -94,7 +94,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         user.setRole(RoleEnum.ROLE_JOBSEEKER);
         user.setAttributes(oAuth2UserInfo.getAttributes());
         System.out.println("Save reached 3 " + user.getProvider());
-        JobSeeker jobSeeker = new JobSeeker(oAuth2UserInfo.getName(), oAuth2UserInfo.getName(), new Date(), user);
+        JobSeeker jobSeeker = new JobSeeker(oAuth2UserInfo.getName(), oAuth2UserInfo.getName(), user);
         jobSeeker.setLocked(false);
         jobSeeker.setEnabled(true);
         System.out.println("Save reached");

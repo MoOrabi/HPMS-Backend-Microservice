@@ -1,5 +1,6 @@
 package com.hpms.userservice.dto.jobseeker;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.userservice.constants.CareerLevel;
 import com.hpms.userservice.model.Education;
 import com.hpms.userservice.model.jobseeker.Certificate;
@@ -72,7 +73,7 @@ public class JobSeekerAllInfoDTO {
 
     private Set<Education> educations;
 
-    private Set<String> skills;
+    private Set<SelectOption> skills;
 
     private Set<Language> languages;
 

@@ -72,10 +72,7 @@ public class JobPost {
 
     private String educationLevel;
 
-//    @OneToMany(fetch = FetchType.LAZY, mappedBy = "jobPost", cascade = CascadeType.ALL)
-//    private List<JobApplication> jobApplications;
-
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection
     @CollectionTable(
             name = "jobseeker_saved_jobs",
             joinColumns = @JoinColumn(name = "job_post_id")
@@ -86,7 +83,7 @@ public class JobPost {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "jobPost" ,cascade = CascadeType.ALL)
     private List<Question> questions;
 
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection
     @CollectionTable(
             name = "job_skills",
             joinColumns = @JoinColumn(name = "job_id")
@@ -109,7 +106,7 @@ public class JobPost {
     private UUID creatorId;
 
     // Store recruiter IDs only
-    @ElementCollection(fetch = FetchType.LAZY)
+    @ElementCollection
     @CollectionTable(
             name = "job_recruiters",
             joinColumns = @JoinColumn(name = "job_id")
@@ -120,7 +117,5 @@ public class JobPost {
     private boolean deleted;
 
     private boolean remote = false;
-
-    private LocalDateTime lastJobUpdate;
 
 }

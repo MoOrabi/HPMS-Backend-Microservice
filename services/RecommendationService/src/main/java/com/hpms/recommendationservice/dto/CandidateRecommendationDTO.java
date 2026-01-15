@@ -17,6 +17,7 @@ public class CandidateRecommendationDTO {
     private UUID jobSeekerId;
     private String firstName;
     private String lastName;
+    private String photo;
     private String careerLevel;
     private String jobTitle;
 
@@ -25,8 +26,8 @@ public class CandidateRecommendationDTO {
 
     private String lastJobTitle;
     private String lastJobOrganizationName;
-    private int lastJobStartedAt;
-    private int lastJobEndedAt;
+    private String lastJobStartedAt;
+    private String lastJobEndedAt;
 
     private Set<String> skills;
 

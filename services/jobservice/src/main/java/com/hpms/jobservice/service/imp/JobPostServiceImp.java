@@ -11,6 +11,7 @@ import com.hpms.jobservice.constants.JobType;
 import com.hpms.jobservice.constants.QuestionType;
 import com.hpms.jobservice.dto.*;
 import com.hpms.jobservice.dto.app.CompanyLocationAndLogoDTO;
+import com.hpms.jobservice.event.JobPostEventPublisher;
 import com.hpms.jobservice.mapper.JobPostMapper;
 import com.hpms.jobservice.mapper.QuestionMapper;
 import com.hpms.jobservice.model.JobPost;
@@ -32,6 +33,7 @@ import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
@@ -54,6 +56,7 @@ public class JobPostServiceImp implements JobPostService {
     private final AppServiceClient appServiceClient;
 
     private final DeleteJobRelatedProducer deleteJobRelatedProducer;
+    private final JobPostEventPublisher jobPostEventPublisher;
 
     @Override
     public ApiResponse<?> getJobInitInfo(String token, UUID postId) {
@@ -128,6 +131,15 @@ public class JobPostServiceImp implements JobPostService {
         return appServiceClient.getPostPublicNumbers(jobPost.getId());
     }
 
+    private static final int MIN_UPDATE_INTERVAL_HOURS = 1;
+
+    public boolean canUpdateProfile(LocalDateTime lastUpdate) {
+        if (lastUpdate == null) {
+            return true;
+        }
+        Duration duration = Duration.between(lastUpdate, LocalDateTime.now());
+        return duration.toHours() >= MIN_UPDATE_INTERVAL_HOURS;
+    }
     @Override
     public ApiResponse<?> updateInitJobInfo(String token, JobPostRequest jobPostRequest) {
         UUID companyId = UUID.fromString(PublicJwtTokenUtils.extractId(token.substring(7)));
@@ -136,8 +148,32 @@ public class JobPostServiceImp implements JobPostService {
             return ApiResponse.getDefaultErrorResponse();
         }
         JobPost jobPost = jobPostOptional.get();
+
+        if (jobPost.getUpdatedOn() != null) {
+            if (!canUpdateProfile(jobPost.getUpdatedOn())) {
+                log.warn("Job post {} was updated too frequently", jobPost.getId());
+                return ApiResponse.builder()
+                        .ok(false)
+                        .status(HttpStatus.TOO_MANY_REQUESTS.value())
+                        .message("You must wait for an hour from last update you have done!")
+                        .build();
+            }
+        }
+        boolean matchingPropChanged = (jobPostRequest.getMinExperienceYears() == jobPost.getMinExperienceYears()
+        || jobPostRequest.getMaxExperienceYears() == jobPost.getMinExperienceYears()
+        ||jobPostRequest.getJobType().equals(jobPost.getJobType().name())
+        ||jobPostRequest.isRemote() == jobPost.isRemote());
+
         updateInitInfo(jobPost, jobPostRequest);
+        jobPost.setUpdatedOn(LocalDateTime.now());
         jobPostRepository.save(jobPost);
+
+
+        if(matchingPropChanged) {
+            jobPostEventPublisher.publishJobMatchingPropUpdated(jobPost);
+        } else {
+            jobPostEventPublisher.publishJobUpdated(jobPost);
+        }
 
         JobPostResponse jobPostResponse = jobPostMapper.toInitInfoDto(jobPostOptional.get());
         return ApiResponse.builder()
@@ -197,6 +233,8 @@ public class JobPostServiceImp implements JobPostService {
                 new DeleteJobRelatedEvent(postId)
         );
 
+        jobPostEventPublisher.publishJobDeleted(jobPost.getId());
+
         return ApiResponse.builder()
                 .ok(true)
                 .status(HttpStatus.ACCEPTED.value())
@@ -216,6 +254,7 @@ public class JobPostServiceImp implements JobPostService {
         jobPost.setOpen(false);
         jobPostRepository.save(jobPost);
 
+        jobPostEventPublisher.publishJobClosed(jobPost.getId());
         return ApiResponse.builder()
                 .ok(true)
                 .status(HttpStatus.ACCEPTED.value())
@@ -518,6 +557,9 @@ public class JobPostServiceImp implements JobPostService {
         }
 
         JobPost savedJobPost = jobPostRepository.save(jobPost);
+        if(jobSettingDto.isPublish()) {
+            jobPostEventPublisher.publishJobPublished(savedJobPost);
+        }
         JobSettingDto advancedSettingDto = jobPostMapper.toAdvancedSettingDto(savedJobPost);
 
         return ApiResponse.builder()

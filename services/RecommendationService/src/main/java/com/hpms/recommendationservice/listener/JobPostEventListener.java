@@ -1,5 +1,6 @@
 package com.hpms.recommendationservice.listener;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.recommendationservice.dto.JobPostEvent;
 import com.hpms.recommendationservice.model.JobPostProfile;
 import com.hpms.recommendationservice.repository.JobPostProfileRepository;
@@ -9,6 +10,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -27,13 +31,10 @@ public class JobPostEventListener {
         log.info("Received job post event: {}", event);
 
         switch (event.getEventType()) {
-            case "JOB_CREATED":
+            case "JOB_MATCHING_PROP_UPDATED":
+                handleJobPublished(event);
             case "JOB_UPDATED":
-                if(event.isMatchingPropertyChanged()) {
-                    handleJobPublished(event);
-                } else {
-                    syncJobPostProfile(event);
-                }
+                syncJobPostProfile(event);
                 break;
             case "JOB_PUBLISHED":
                 handleJobPublished(event);
@@ -55,11 +56,12 @@ public class JobPostEventListener {
                 .employmentType(event.getEmploymentType())
                 .minExperienceYears(event.getMinExperienceYears())
                 .maxExperienceYears(event.getMaxExperienceYears())
-                .skills(event.getSkills())
+                .skills(event.getSkills().stream().map(SelectOption::getName).collect(Collectors.toSet()))
                 .companyId(event.getCompanyId())
                 .companyName(event.getCompanyName())
                 .publishedOn(event.getPublishedOn())
-                .lastJobUpdate(event.getLastJobUpdate())
+                .open(true)
+                .deleted(false)
                 .build();
 
         jobPostProfileRepository.save(profile);
@@ -68,17 +70,6 @@ public class JobPostEventListener {
 
     private void handleJobPublished(JobPostEvent event) {
         log.info("Handling job published event for job post: {}", event.getJobPostId());
-
-        // Validate update frequency
-        JobPostProfile existingProfile = jobPostProfileRepository.findById(event.getJobPostId())
-                .orElse(null);
-
-        if (existingProfile != null && existingProfile.getLastJobUpdate() != null) {
-            if (!matchingService.canUpdateProfile(existingProfile.getLastJobUpdate())) {
-                log.warn("Job post {} was updated too frequently", event.getJobPostId());
-                return;
-            }
-        }
 
         // Sync profile
         syncJobPostProfile(event);
@@ -89,7 +80,7 @@ public class JobPostEventListener {
         log.info("Completed job published and matching for job post: {}", event.getJobPostId());
     }
 
-    private void handleJobClosed(java.util.UUID jobPostId) {
+    private void handleJobClosed(UUID jobPostId) {
         log.info("Handling job closed event for job post: {}", jobPostId);
 
         JobPostProfile profile = jobPostProfileRepository.findById(jobPostId).orElse(null);

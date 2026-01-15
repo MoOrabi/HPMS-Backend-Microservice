@@ -1,5 +1,6 @@
 package com.hpms.jobservice.dto;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.jobservice.constants.EmploymentType;
 import com.hpms.jobservice.constants.JobType;
 import lombok.Builder;
@@ -8,6 +9,7 @@ import lombok.Setter;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Setter
@@ -40,6 +42,6 @@ public class JobPostForUserResponse {
     private String companyLocation;
     private JobPostPublicNumbers publicNumbers;
     private boolean deleted;
-    private List<SkillDTO> skills;
+    private Set<SelectOption> skills;
     private boolean saved;
 }

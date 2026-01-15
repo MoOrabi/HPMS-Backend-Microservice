@@ -1,7 +1,9 @@
 package com.hpms.userservice.service.impl;
 
+import com.hpms.commonlib.constants.RoleEnum;
 import com.hpms.commonlib.dto.ApiResponse;
 import com.hpms.commonlib.dto.DeleteUserRelatedEvent;
+import com.hpms.userservice.event.JobSeekerEventPublisher;
 import com.hpms.userservice.model.DeletionRequest;
 import com.hpms.userservice.model.User;
 import com.hpms.userservice.repository.DeletionRequestRepository;
@@ -33,6 +35,7 @@ public class AccountSettingServiceImp implements AccountSettingService {
     private final FrequentlyUsed frequentlyUsed;
 
     private final DeleteUserRelatedDataProducerService deleteUserRelatedDataProducerService;
+    private final JobSeekerEventPublisher jobSeekerEventPublisher;
 
     public ApiResponse<?> deleteAccount(String token) {
         ApiResponse<?> isThereUserFromToken = frequentlyUsed.getUserFromTokenIfExist(token);
@@ -110,6 +113,9 @@ public class AccountSettingServiceImp implements AccountSettingService {
             deleteUserRelatedDataProducerService.sendDeleteEvent(
                     new DeleteUserRelatedEvent(user.getId(), user.getRole())
             );
+            if(user.getRole().equals(RoleEnum.ROLE_JOBSEEKER)) {
+                jobSeekerEventPublisher.publishProfileDeleted(user.getId());
+            }
             return ApiResponse.builder()
                     .ok(true)
                     .status(HttpStatus.OK.value())

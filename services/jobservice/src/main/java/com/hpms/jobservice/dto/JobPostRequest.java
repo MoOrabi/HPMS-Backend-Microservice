@@ -64,5 +64,7 @@ public class JobPostRequest {
     @Size(max = 2000, message = "Benefits length must be less than or equal to 3000 characters")
     private String benefits;
 
+    private boolean remote = false;
+
 }
  

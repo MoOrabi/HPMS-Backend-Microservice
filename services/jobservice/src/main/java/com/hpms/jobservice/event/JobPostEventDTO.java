@@ -1,5 +1,6 @@
 package com.hpms.jobservice.event;
 
+import com.hpms.commonlib.dto.SelectOption;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -15,23 +16,31 @@ import java.util.UUID;
 @AllArgsConstructor
 public class JobPostEventDTO {
     private UUID jobPostId;
+
     private String jobTitle;
+
+    private String companyLogo;
+
     private String jobType;
+
     private String employmentType;
+
+    private String city;
+    private String country;
+    private boolean remote;
+
     private int minExperienceYears;
     private int maxExperienceYears;
-    private double minSalary;
-    private double maxSalary;
-    private String currency;
-    private String educationLevel;
-    private String gender;
-    private Set<Long> skillIds;
-    private Long industryId;
-    private Long jobNameId;
+
+    private Set<SelectOption> skills;
+
     private UUID companyId;
+    private String companyName;
+
     private boolean open;
     private boolean deleted;
+
     private String eventType;
+
     private LocalDateTime publishedOn;
-    private LocalDateTime lastJobUpdate;
 }

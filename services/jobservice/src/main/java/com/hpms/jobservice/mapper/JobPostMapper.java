@@ -1,19 +1,23 @@
 package com.hpms.jobservice.mapper;
 
+import com.hpms.commonlib.dto.SelectOption;
 import com.hpms.commonlib.handler.ServiceCommunicationException;
 import com.hpms.jobservice.dto.*;
 import com.hpms.jobservice.model.JobPost;
 import com.hpms.jobservice.repository.JobPostRepository;
 import com.hpms.jobservice.service.client.AppServiceClient;
+import com.hpms.jobservice.service.client.ReferenceServiceClient;
 import com.hpms.jobservice.service.client.UserServiceClient;
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.CompletionException;
 
 @Component
 @AllArgsConstructor
@@ -23,6 +27,7 @@ public class JobPostMapper {
     private final UserServiceClient userServiceClient;
     private final AppServiceClient appServiceClient;
     private final JobPostRepository jobPostRepository;
+    private final ReferenceServiceClient referenceServiceClient;
 
     public Page<JobPostDto> toPageDto(Page<JobPost> jobPostPage){
         return jobPostPage.map(this::toPublicDto);
@@ -32,18 +37,38 @@ public class JobPostMapper {
         return jobPostPage.map(jobPost -> toPublicDto(jobPost, jobSeekerId));
     }
 
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public JobPostDto toPublicDto(JobPost jobPost,UUID jobSeekerId){
         if (jobPost == null) {
             return null;
         }
 
+//        CompletableFuture<JobRelatedDataDTO> relatedDataFuture = CompletableFuture.supplyAsync(() ->
+//                getJobRelatedDataDTO(jobPost, jobSeekerId)
+//        );
+//
+//        CompletableFuture<Boolean> isSavedFuture = CompletableFuture.supplyAsync(() ->
+//                jobPostRepository.isJobPostSaved(jobSeekerId, jobPost.getId())
+//        );
+//
+//        CompletableFuture<Integer> appsNumberFuture = CompletableFuture.supplyAsync(() ->
+//                fetchApplicationsCount(jobPost.getId())
+//        );
+//
+//        CompletableFuture.allOf(relatedDataFuture, isSavedFuture, appsNumberFuture).join();
+//
+//        JobRelatedDataDTO jobRelatedDataDTO = relatedDataFuture.join();
+//        boolean isSaved = isSavedFuture.join();
+//        int appsNumber = appsNumberFuture.join();
+
         JobRelatedDataDTO jobRelatedDataDTO = getJobRelatedDataDTO(jobPost, jobSeekerId);
-        boolean isSaved  = jobPostRepository.isJobPostSaved(jobSeekerId, jobPost.getId());
+        boolean isSaved = jobPostRepository.isJobPostSaved(jobSeekerId, jobPost.getId());
+        int appsNumber = fetchApplicationsCount(jobPost.getId());
 
         return JobPostDto.builder()
                 .id(jobPost.getId())
                 .companyImageUrl(jobRelatedDataDTO.getCompany().getImageUrl())
-//                .applicationNum(jobPost.getJobApplications().size())
+                .applicationNum(appsNumber)
                 .jobTitle(jobPost.getJobTitle())
                 .jobType(jobPost.getJobType().getValue())
                 .company(jobRelatedDataDTO.getCompany().getName())
@@ -54,31 +79,79 @@ public class JobPostMapper {
                 .maxExperienceYears(jobPost.getMaxExperienceYears())
                 .jobName(jobRelatedDataDTO.getJobName().getName())
                 .industry(jobRelatedDataDTO.getIndustry().getName())
-                .skills(jobRelatedDataDTO.getSkills().stream().map(SkillDTO::getName).toList())
+                .skills(jobRelatedDataDTO.getSkills())
                 .saved(isSaved)
                 .build();
 
     }
 
     private JobRelatedDataDTO getJobRelatedDataDTO(JobPost jobPost, UUID jobSeekerId) {
+
+
+//        CompletableFuture<JobRelatedDataDTO> userDataFuture = CompletableFuture.supplyAsync(() ->
+//                fetchUserServiceData(jobPost, jobSeekerId)
+//        );
+//
+//        CompletableFuture<Set<String>> skillsFuture = CompletableFuture.supplyAsync(() ->
+//                fetchSkillsData(jobPost.getSkillIds())
+//        );
+
+        try {
+//            JobRelatedDataDTO jobRelatedData = userDataFuture.join();
+//            Set<String> skills = skillsFuture.join();
+
+            JobRelatedDataDTO jobRelatedData = fetchUserServiceData(jobPost, jobSeekerId);
+            Set<SelectOption> skills = fetchSkillsData(jobPost.getSkillIds());
+
+            jobRelatedData.setSkills(skills);
+            return jobRelatedData;
+
+        } catch (CompletionException e) {
+            log.error("Error fetching job related data for job {}, seeker {}",
+                    jobPost.getId(), jobSeekerId, e);
+            return JobRelatedDataDTO.builder().build();
+        }
+    }
+
+    private JobRelatedDataDTO fetchUserServiceData(JobPost jobPost, UUID jobSeekerId) {
         try {
             return userServiceClient.getJobsRelatedData(
-                    JobRelatedDataRequest
-                            .builder()
+                    JobRelatedDataRequest.builder()
                             .jobPostId(jobPost.getId())
                             .jobNameId(jobPost.getJobNameId())
                             .companyId(jobPost.getCompanyId())
                             .creatorId(jobPost.getCreatorId())
                             .recruiterIds(jobPost.getRecruiterIds())
-                            .skillIds(jobPost.getSkillIds())
                             .industryId(jobPost.getIndustryId())
                             .jobSeekerCallerId(jobSeekerId)
-                            .build());
+                            .build()
+            );
         } catch (ServiceCommunicationException e) {
-            log.warn("User service unavailable for job seeker {}", jobSeekerId);
+            log.warn("User service unavailable for job {}, returning partial data", jobPost.getId(), e);
             return JobRelatedDataDTO.builder().build();
         }
+    }
 
+    private Set<SelectOption> fetchSkillsData(Set<Long> skillIds) {
+        if (skillIds == null || skillIds.isEmpty()) {
+            return Collections.emptySet();
+        }
+
+        try {
+            return referenceServiceClient.getSkillsNames(skillIds);
+        } catch (ServiceCommunicationException e) {
+            log.warn("Reference service unavailable, returning empty skills", e);
+            return Collections.emptySet();
+        }
+    }
+
+    private int fetchApplicationsCount(UUID jobPostId) {
+        try {
+            return appServiceClient.getNumberOfApplications(jobPostId);
+        } catch (ServiceCommunicationException e) {
+            log.warn("Application service unavailable for job {}", jobPostId);
+            return 0;
+        }
     }
 
     public JobPostDto toPublicDto(JobPost jobPost){
@@ -107,7 +180,7 @@ public class JobPostMapper {
                 .maxExperienceYears(jobPost.getMaxExperienceYears())
                 .jobName(jobRelatedDataDTO.getJobName().getName())
                 .industry(jobRelatedDataDTO.getIndustry().getName())
-                .skills(jobRelatedDataDTO.getSkills().stream().map(SkillDTO::getName).toList())
+                .skills(jobRelatedDataDTO.getSkills())
                 .build();
 
     }
@@ -205,7 +278,7 @@ public class JobPostMapper {
         jobPostResponse.maxApplication( jobPost.getMaxApplication() );
         jobPostResponse.open( jobPost.isOpen() );
         jobPostResponse.deleted(jobPost.isDeleted());
-        jobPostResponse.companyLocation(jobRelatedDataDTO.getCompany().getLocation());
+        jobPostResponse.companyLocation(jobRelatedDataDTO.getCompany()!=null?jobRelatedDataDTO.getCompany().getLocation():null);
 
         return jobPostResponse.build();
     }
@@ -227,7 +300,6 @@ public class JobPostMapper {
         jobPostForUserResponse.jobName(jobRelatedDataDTO.getJobName());
         jobPostForUserResponse.draft(jobPost.isDraft());
         jobPostForUserResponse.skills(jobRelatedDataDTO.getSkills());
-
         jobPostForUserResponse.industry(jobRelatedDataDTO.getIndustry());
         jobPostForUserResponse.saved(isSaved);
         jobPostForUserResponse.minSalary( jobPost.getMinSalary() );
@@ -241,7 +313,7 @@ public class JobPostMapper {
         jobPostForUserResponse.maxApplication( jobPost.getMaxApplication() );
         jobPostForUserResponse.open( jobPost.isOpen() );
         jobPostForUserResponse.deleted(jobPost.isDeleted());
-        jobPostForUserResponse.companyLocation(jobRelatedDataDTO.getCompany().getLocation());
+        jobPostForUserResponse.companyLocation(jobRelatedDataDTO.getCompany()!=null?jobRelatedDataDTO.getCompany().getLocation():null);
 
         return jobPostForUserResponse.build();
     }
