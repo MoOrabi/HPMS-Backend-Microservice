@@ -30,8 +30,9 @@ The system is composed of the following modules:
 - **Spring Boot**: 4.0.0
 - **Spring Cloud**: 2025.1.0
 - **Build Tool**: Maven
-- **Database**: (Specify if known, e.g., PostgreSQL, MySQL)
-- **Messaging**: (If applicable, e.g., RabbitMQ)
+- **Database**: MySQL
+- **Messaging**: Kafka
+- **Containerization**: Docker
 
 ## Prerequisites
 
