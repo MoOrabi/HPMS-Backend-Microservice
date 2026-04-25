@@ -4,6 +4,8 @@
 
 HPMS is a microservices-based backend system for managing the hiring process. It provides services for user management, job postings, applications, recommendations, email notifications, and more. Built with Spring Boot and Spring Cloud, it follows a distributed architecture using Eureka for service discovery and a gateway for routing.
 
+This project originated as a monolithic graduation project and was converted to a microservices architecture independently.
+
 ## Architecture
 
 The system is composed of the following modules:
@@ -79,11 +81,3 @@ Configurations are managed via the Config Server. Check `infrastructure/config-s
 
 - Use the provided `mvnw` wrapper for consistent builds.
 - IDE: IntelliJ IDEA recommended (`.idea` is ignored).
-
-## Contributing
-
-(Please add contribution guidelines)
-
-## License
-
-(Specify license)
